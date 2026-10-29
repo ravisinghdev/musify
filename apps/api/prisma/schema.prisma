@@ -1,0 +1,113 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// User device/guest session or authenticated user identity
+model UserSession {
+  id                    String             @id @default(uuid())
+  isAnonymous           Boolean            @default(true)
+  email                 String?            @unique
+  emailVerified         Boolean            @default(false)
+  passwordHash          String?
+  displayName           String?
+  avatarUrl             String?
+  tokenHash             String?
+  deviceHash            String?
+  verificationCodeHash  String?
+  verificationExpiresAt DateTime?
+  lastLoginAt           DateTime?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  playlists             Playlist[]
+  favorites             FavoriteTrack[]
+  history               ListeningHistory[]
+
+  @@index([tokenHash])
+  @@map("user_sessions")
+}
+
+// User-created playlists
+model Playlist {
+  id          String          @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  artworkUrl  String?
+  isPublic    Boolean         @default(false)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  user        UserSession     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tracks      PlaylistTrack[]
+
+  @@index([userId])
+  @@map("playlists")
+}
+
+// Songs saved inside playlists
+model PlaylistTrack {
+  id            String    @id @default(cuid())
+  playlistId    String
+  trackId       String
+  title         String
+  artistsJson   String    @default("[]")
+  albumTitle    String?
+  artworkUrl    String?
+  durationMs    Int?
+  sourceTrackId String
+  position      Int       @default(0)
+  addedAt       DateTime  @default(now())
+
+  playlist      Playlist  @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+
+  @@unique([playlistId, trackId])
+  @@index([playlistId, position])
+  @@map("playlist_tracks")
+}
+
+// User liked / favorited tracks
+model FavoriteTrack {
+  id            String      @id @default(cuid())
+  userId        String
+  trackId       String
+  title         String
+  artistsJson   String      @default("[]")
+  albumTitle    String?
+  artworkUrl    String?
+  durationMs    Int?
+  sourceTrackId String
+  addedAt       DateTime    @default(now())
+
+  user          UserSession @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, trackId])
+  @@index([userId, addedAt(sort: Desc)])
+  @@map("favorite_tracks")
+}
+
+// Listening logs used for user history & AI DJ personalization
+model ListeningHistory {
+  id            String      @id @default(cuid())
+  userId        String
+  trackId       String
+  title         String
+  artistsJson   String      @default("[]")
+  albumTitle    String?
+  artworkUrl    String?
+  durationMs    Int?
+  sourceTrackId String
+  playedAt      DateTime    @default(now())
+
+  user          UserSession @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, playedAt(sort: Desc)])
+  @@map("listening_history")
+}
+
