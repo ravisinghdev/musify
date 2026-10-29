@@ -11,10 +11,31 @@ export interface CustomPlaylist {
 }
 
 export function getApiBase(): string {
-  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
-  if (typeof window !== "undefined" && window.location.hostname) {
+  // 1. Explicit override via public environment variable
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL.replace(/\/+$/, "");
+  }
+
+  // 2. Server-side runtime (functions/SSR): use bound internal service URL from Vercel
+  if (typeof window === "undefined" && process.env.API_URL) {
+    const rawUrl = process.env.API_URL.endsWith("/")
+      ? process.env.API_URL
+      : `${process.env.API_URL}/`;
+    return new URL("api/v1", rawUrl).toString().replace(/\/+$/, "");
+  }
+
+  // 3. Client-side in browser:
+  if (typeof window !== "undefined") {
+    // When running under Vercel (or reverse proxy) where /api is rewritten to the api service:
+    // Relative URL "/api/v1" automatically hits the same host and routes to the api service.
+    if (window.location.port !== "3000") {
+      return "/api/v1";
+    }
+    // Standalone local development fallback where API runs on port 3001
     return `http://${window.location.hostname}:3001/api/v1`;
   }
+
+  // 4. Default server fallback for local development
   return "http://localhost:3001/api/v1";
 }
 

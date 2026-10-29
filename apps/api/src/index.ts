@@ -652,9 +652,14 @@ const app = new Elysia()
   // Test endpoint
   .get("/api/test-video", async () => {
     return await provider.getPlaybackBySourceId("dQw4w9WgXcQ");
-  })
-  .listen(3001);
+  });
 
-console.log(
-  `MUSIFY API is running at http://${app.server?.hostname}:${app.server?.port}`,
-);
+// Run standalone server only in local development when not on Vercel
+if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
+  const port = process.env.PORT || 3001;
+  app.listen(port);
+  console.log(`MUSIFY API is running on port ${port}`);
+}
+
+export default app;
+export type App = typeof app;

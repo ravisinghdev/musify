@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from "crypto";
+import { createHmac, timingSafeEqual, randomBytes, scryptSync } from "crypto";
 import { prisma, sanitizeText } from "./db.service";
 
 interface TokenPayload {
@@ -57,14 +57,19 @@ export class AuthService {
   }
 
   /**
-   * Hashes a password using Argon2id (GPU-resistant gold standard)
+   * Hashes a password using Argon2id on Bun or scrypt on Node.js
    */
   async hashPassword(password: string): Promise<string> {
-    return await Bun.password.hash(password, {
-      algorithm: "argon2id",
-      memoryCost: 65536,
-      timeCost: 2,
-    });
+    if (typeof Bun !== "undefined" && (Bun as any)?.password?.hash) {
+      return await (Bun as any).password.hash(password, {
+        algorithm: "argon2id",
+        memoryCost: 65536,
+        timeCost: 2,
+      });
+    }
+    const salt = randomBytes(16).toString("hex");
+    const derivedKey = scryptSync(password, salt, 64);
+    return `scrypt:${salt}:${derivedKey.toString("hex")}`;
   }
 
   /**
@@ -72,7 +77,18 @@ export class AuthService {
    */
   async verifyPassword(password: string, hash: string): Promise<boolean> {
     try {
-      return await Bun.password.verify(password, hash);
+      if (typeof Bun !== "undefined" && (Bun as any)?.password?.verify && !hash.startsWith("scrypt:")) {
+        return await (Bun as any).password.verify(password, hash);
+      }
+      if (hash.startsWith("scrypt:")) {
+        const parts = hash.split(":");
+        if (parts.length !== 3) return false;
+        const [, salt, key] = parts;
+        const derivedKey = scryptSync(password, salt, 64);
+        const storedKey = Buffer.from(key, "hex");
+        return timingSafeEqual(storedKey, derivedKey);
+      }
+      return false;
     } catch {
       return false;
     }
