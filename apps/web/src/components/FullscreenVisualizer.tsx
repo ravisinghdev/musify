@@ -159,7 +159,7 @@ export function FullscreenVisualizer({
       </header>
 
       {/* Center: Significantly Enlarged Spinning Vinyl Disc with Smooth Sinusoidal Float */}
-      <div className="relative z-10 flex flex-1 flex-col items-center justify-center py-2 min-h-0 overflow-hidden">
+      <div className="relative z-10 flex flex-1 flex-col items-center justify-center py-2 min-h-0 overflow-hidden w-full">
         {/* Double-tap popping heart feedback */}
         {showHeartPop && (
           <div className="absolute z-30 pointer-events-none flex items-center justify-center animate-ping duration-700">
@@ -238,7 +238,7 @@ export function FullscreenVisualizer({
             }}
             className="min-w-0 flex-1 text-left cursor-pointer group"
           >
-            <div className="overflow-hidden w-full">
+            <div className="overflow-hidden w-full [mask-image:linear-gradient(to_right,black_88%,transparent)]">
               <h1
                 title={track.title}
                 className={`text-lg sm:text-2xl font-black tracking-tight text-white group-hover:text-indigo-300 transition ${
