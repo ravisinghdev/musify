@@ -37,9 +37,7 @@ import { notificationsApi, type AppNotification } from "../lib/notifications";
 import { offlineStore } from "../lib/offlineStore";
 import {
   CustomPlaylist,
-  INITIAL_PLAYLISTS,
   SafeUser,
-  SEED_TRACKS,
   store,
 } from "../lib/store";
 import { useArtworkTheme } from "../lib/useArtworkTheme";
@@ -62,56 +60,7 @@ function getDynamicGreeting(): string {
   return "LATE NIGHT VIBES";
 }
 
-const POPULAR_ARTISTS = [
-  {
-    id: "the-weeknd",
-    name: "The Weeknd",
-    role: "Artist",
-    avatar: "https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg",
-  },
-  {
-    id: "lady-gaga",
-    name: "Lady Gaga",
-    role: "Artist",
-    avatar: "https://i.ytimg.com/vi/DlFXDl_ROAM/hqdefault.jpg",
-  },
-  {
-    id: "bruno-mars",
-    name: "Bruno Mars",
-    role: "Artist",
-    avatar: "https://i.ytimg.com/vi/DlFXDl_ROAM/hqdefault.jpg",
-  },
-  {
-    id: "billie-eilish",
-    name: "Billie Eilish",
-    role: "Artist",
-    avatar: "https://i.ytimg.com/vi/d5gx74aac6o/hqdefault.jpg",
-  },
-  {
-    id: "ed-sheeran",
-    name: "Ed Sheeran",
-    role: "Artist",
-    avatar: "https://i.ytimg.com/vi/xTvyyoF_LZY/hqdefault.jpg",
-  },
-  {
-    id: "post-malone",
-    name: "Post Malone",
-    role: "Artist",
-    avatar: "https://i.ytimg.com/vi/n-UIRqgXjGA/hqdefault.jpg",
-  },
-  {
-    id: "anuv-jain",
-    name: "Anuv Jain",
-    role: "Artist",
-    avatar: "https://i.ytimg.com/vi/_deqdZmKzyg/hqdefault.jpg",
-  },
-  {
-    id: "the-local-train",
-    name: "The Local Train",
-    role: "Band",
-    avatar: "https://i.ytimg.com/vi/opwZ_PJ-F_E/hqdefault.jpg",
-  },
-];
+
 
 const VIBE_STATIONS = [
   {
@@ -186,7 +135,7 @@ export default function Home() {
   const [favorites, setFavorites] = useState<Track[]>([]);
   const [recentlyPlayed, setRecentlyPlayed] = useState<Track[]>([]);
   const [customPlaylists, setCustomPlaylists] =
-    useState<CustomPlaylist[]>(INITIAL_PLAYLISTS);
+    useState<CustomPlaylist[]>([]);
 
   // Right Panel & Lyrics State
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
@@ -1359,13 +1308,7 @@ export default function Home() {
         }
       }
     }
-    const derived = Array.from(artistMap.values()).slice(0, 8);
-    if (derived.length > 0) return derived;
-    return POPULAR_ARTISTS.map((a) => ({
-      id: a.id,
-      name: a.name,
-      avatar: a.avatar,
-    }));
+    return Array.from(artistMap.values()).slice(0, 8);
   }, [trendingTracks, quickPicksTracks]);
 
   return (
@@ -2122,7 +2065,8 @@ export default function Home() {
                         onPlay={() => handlePlayPlaylist(pl)}
                       />
                     ))
-                  : customPlaylists
+                  : customPlaylists.length > 0
+                  ? customPlaylists
                       .slice(0, 6)
                       .map((pl, idx) => (
                         <MediaCard
@@ -2135,7 +2079,19 @@ export default function Home() {
                           onClick={() => openPlaylist(pl)}
                           onPlay={() => handlePlayPlaylist(pl)}
                         />
-                      ))}
+                      ))
+                  : [1, 2, 3, 4].map((i) => (
+                      <div
+                        key={i}
+                        className="flex-shrink-0 w-44 h-56 rounded-2xl bg-white/[0.03] border border-white/[0.05] p-3 animate-pulse flex flex-col justify-between"
+                      >
+                        <div className="w-full aspect-square rounded-xl bg-white/[0.05]" />
+                        <div className="space-y-2 pt-2">
+                          <div className="h-3 w-3/4 bg-white/[0.08] rounded" />
+                          <div className="h-2 w-1/2 bg-white/[0.05] rounded" />
+                        </div>
+                      </div>
+                    ))}
               </MediaSection>
 
               {/* Trending Worldwide Section */}

@@ -45,141 +45,7 @@ const API_BASE: any = {
   },
 };
 
-// Initial tracks matching top global Billboard sensations
-export const SEED_TRACKS: Record<string, Track> = {
-  dieWithASmile: {
-    id: "yt_die_with_a_smile",
-    title: "Die With A Smile",
-    artists: [{ id: "gaga-bruno", name: "Lady Gaga, Bruno Mars" }],
-    artworkUrl: "https://i.ytimg.com/vi/DlFXDl_ROAM/hqdefault.jpg",
-    durationMs: 251000,
-    source: "youtube",
-    sourceTrackId: "DlFXDl_ROAM",
-  },
-  birdsOfAFeather: {
-    id: "yt_birds_of_a_feather",
-    title: "BIRDS OF A FEATHER",
-    artists: [{ id: "billie-eilish", name: "Billie Eilish" }],
-    artworkUrl: "https://i.ytimg.com/vi/d5gx74aac6o/hqdefault.jpg",
-    durationMs: 196000,
-    source: "youtube",
-    sourceTrackId: "d5gx74aac6o",
-  },
-  sapphire: {
-    id: "yt_sapphire",
-    title: "Shape of You",
-    artists: [{ id: "ed-sheeran", name: "Ed Sheeran" }],
-    artworkUrl: "https://i.ytimg.com/vi/xTvyyoF_LZY/hqdefault.jpg",
-    durationMs: 233000,
-    source: "youtube",
-    sourceTrackId: "xTvyyoF_LZY",
-  },
-  espresso: {
-    id: "yt_espresso",
-    title: "Espresso",
-    artists: [{ id: "sabrina-carpenter", name: "Sabrina Carpenter" }],
-    artworkUrl: "https://i.ytimg.com/vi/eVli-tstM5E/hqdefault.jpg",
-    durationMs: 175000,
-    source: "youtube",
-    sourceTrackId: "eVli-tstM5E",
-  },
-  callOutMyName: {
-    id: "yt_call_out_my_name",
-    title: "Call Out My Name",
-    artists: [{ id: "the-weeknd", name: "The Weeknd" }],
-    artworkUrl: "https://i.ytimg.com/vi/M4ZoCHID9GI/hqdefault.jpg",
-    durationMs: 228000,
-    source: "youtube",
-    sourceTrackId: "M4ZoCHID9GI",
-  },
-  iLikeYou: {
-    id: "yt_i_like_you",
-    title: "I Like You",
-    artists: [{ id: "post-malone", name: "Post Malone" }],
-    artworkUrl: "https://i.ytimg.com/vi/n-UIRqgXjGA/hqdefault.jpg",
-    durationMs: 192000,
-    source: "youtube",
-    sourceTrackId: "n-UIRqgXjGA",
-  },
-  blindingLights: {
-    id: "yt_blinding_lights",
-    title: "Blinding Lights",
-    artists: [{ id: "the-weeknd", name: "The Weeknd" }],
-    artworkUrl: "https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg",
-    durationMs: 200000,
-    source: "youtube",
-    sourceTrackId: "4NRXx6U8ABQ",
-  },
-  husn: {
-    id: "yt_husn",
-    title: "Husn",
-    artists: [{ id: "anuv-jain", name: "Anuv Jain" }],
-    artworkUrl: "https://i.ytimg.com/vi/_deqdZmKzyg/hqdefault.jpg",
-    durationMs: 218000,
-    source: "youtube",
-    sourceTrackId: "_deqdZmKzyg",
-  },
-  chooLo: {
-    id: "yt_choo_lo",
-    title: "Choo Lo",
-    artists: [{ id: "the-local-train", name: "The Local Train" }],
-    artworkUrl: "https://i.ytimg.com/vi/opwZ_PJ-F_E/hqdefault.jpg",
-    durationMs: 233000,
-    source: "youtube",
-    sourceTrackId: "opwZ_PJ-F_E",
-  },
-};
-
-export const INITIAL_PLAYLISTS: CustomPlaylist[] = [
-  {
-    id: "cp-chill-vibes",
-    name: "Chill Vibes",
-    description: "Relaxing melodies and mellow beats to unwind to.",
-    artwork: "https://i.ytimg.com/vi/_deqdZmKzyg/hqdefault.jpg",
-    tracks: [
-      SEED_TRACKS.husn,
-      SEED_TRACKS.sapphire,
-      SEED_TRACKS.chooLo,
-      SEED_TRACKS.iLikeYou,
-    ],
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "cp-lofi-beats",
-    name: "Lo-Fi Beats",
-    description: "Quiet sunset aesthetics for study and calm.",
-    artwork: "https://i.ytimg.com/vi/jfKfPfyJRdk/hqdefault.jpg",
-    tracks: [SEED_TRACKS.sapphire, SEED_TRACKS.callOutMyName, SEED_TRACKS.husn],
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "cp-workout-mix",
-    name: "Workout Mix",
-    description: "High-energy hits to power your workout sessions.",
-    artwork: "https://i.ytimg.com/vi/DlFXDl_ROAM/hqdefault.jpg",
-    tracks: [
-      SEED_TRACKS.dieWithASmile,
-      SEED_TRACKS.iLikeYou,
-      SEED_TRACKS.callOutMyName,
-    ],
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "cp-discover-weekly",
-    name: "Discover Weekly",
-    description: "Hand-picked dynamic track discoveries updated for you.",
-    artwork: "https://i.ytimg.com/vi/d5gx74aac6o/hqdefault.jpg",
-    tracks: [
-      SEED_TRACKS.dieWithASmile,
-      SEED_TRACKS.sapphire,
-      SEED_TRACKS.husn,
-      SEED_TRACKS.callOutMyName,
-      SEED_TRACKS.iLikeYou,
-      SEED_TRACKS.chooLo,
-    ],
-    createdAt: new Date().toISOString(),
-  },
-];
+export const INITIAL_PLAYLISTS: CustomPlaylist[] = [];
 
 export interface SafeUser {
   id: string;
@@ -547,7 +413,7 @@ export const store = {
 
   // 2. Playlists Management
   async getPlaylists(): Promise<CustomPlaylist[]> {
-    if (typeof window === "undefined") return INITIAL_PLAYLISTS;
+    if (typeof window === "undefined") return [];
 
     let cached: CustomPlaylist[] = [];
     try {
@@ -562,39 +428,16 @@ export const store = {
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data.playlists)) {
-          if (data.playlists.length > 0) {
-            localStorage.setItem(
-              KEYS.PLAYLISTS,
-              JSON.stringify(data.playlists),
-            );
-            return data.playlists;
-          }
-
-          // If brand new user in DB, seed their initial playlists
-          if (data.playlists.length === 0 && cached.length === 0) {
-            for (const seed of INITIAL_PLAYLISTS) {
-              await store.createPlaylist(seed.name, seed.tracks[0]);
-            }
-            const recheck = await fetch(`${API_BASE}/user/playlists`, {
-              headers: getAuthHeaders(),
-            });
-            if (recheck.ok) {
-              const reData = await recheck.json();
-              if (reData.playlists?.length) {
-                localStorage.setItem(
-                  KEYS.PLAYLISTS,
-                  JSON.stringify(reData.playlists),
-                );
-                return reData.playlists;
-              }
-            }
-          }
+          localStorage.setItem(
+            KEYS.PLAYLISTS,
+            JSON.stringify(data.playlists),
+          );
+          return data.playlists;
         }
       }
     } catch {}
 
-    if (cached.length > 0) return cached;
-    return INITIAL_PLAYLISTS;
+    return cached;
   },
 
   async createPlaylist(
