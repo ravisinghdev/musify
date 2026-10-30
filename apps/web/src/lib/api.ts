@@ -45,7 +45,7 @@ export function getApiBase(): string {
     // On native mobile devices, NEVER use localhost (points to phone loopback).
     // Use the live production backend URL:
     if (isNative) {
-      return "https://musify-ten-bay.vercel.app/api/v1";
+      return "https://musify-4fzw.onrender.com/api/v1";
     }
 
     // When running locally on laptop/desktop in browser on port 3000:
@@ -61,7 +61,7 @@ export function getApiBase(): string {
   }
 
   // 4. Default fallback:
-  return "https://musify-ten-bay.vercel.app/api/v1";
+  return "https://musify-4fzw.onrender.com/api/v1";
 }
 
 const API_BASE: any = {
@@ -70,49 +70,133 @@ const API_BASE: any = {
   },
 };
 
-async function fetchJson<T>(url: string): Promise<T> {
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`API error ${res.status}: ${res.statusText}`);
+// ==========================================
+// HIGH-SPEED CLIENT CACHE & REQUEST COALESCER
+// ==========================================
+interface CacheEntry {
+  data: any;
+  expiresAt: number;
+}
+const clientMemoryCache = new Map<string, CacheEntry>();
+const inFlightRequests = new Map<string, Promise<any>>();
+
+function getCached<T>(key: string): T | null {
+  const entry = clientMemoryCache.get(key);
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) {
+    clientMemoryCache.delete(key);
+    return null;
   }
-  return res.json();
+  return entry.data as T;
+}
+
+function setCached(key: string, data: any, ttlSeconds: number) {
+  // Cap max entries to 250 to keep memory ultra-lean on mobile
+  if (clientMemoryCache.size > 250) {
+    const firstKey = clientMemoryCache.keys().next().value;
+    if (firstKey) clientMemoryCache.delete(firstKey);
+  }
+  clientMemoryCache.set(key, {
+    data,
+    expiresAt: Date.now() + ttlSeconds * 1000,
+  });
+}
+
+let activeSearchAbortController: AbortController | null = null;
+
+async function fetchJson<T>(
+  url: string,
+  options?: { ttlSeconds?: number; isSearch?: boolean; signal?: AbortSignal },
+): Promise<T> {
+  const cacheKey = url;
+
+  // 1. Instant Cache Hit (0ms return)
+  if (options?.ttlSeconds && options.ttlSeconds > 0) {
+    const cached = getCached<T>(cacheKey);
+    if (cached !== null) return cached;
+  }
+
+  // 2. In-flight request deduplication (prevents duplicate simultaneous network fetches)
+  if (inFlightRequests.has(cacheKey)) {
+    return inFlightRequests.get(cacheKey) as Promise<T>;
+  }
+
+  const fetchPromise = (async () => {
+    try {
+      const res = await fetch(url, {
+        signal: options?.signal,
+        headers: {
+          Accept: "application/json",
+        },
+      });
+      if (!res.ok) {
+        throw new Error(`API error ${res.status}: ${res.statusText}`);
+      }
+      const data = await res.json();
+      if (options?.ttlSeconds && options.ttlSeconds > 0) {
+        setCached(cacheKey, data, options.ttlSeconds);
+      }
+      return data;
+    } finally {
+      inFlightRequests.delete(cacheKey);
+    }
+  })();
+
+  inFlightRequests.set(cacheKey, fetchPromise);
+  return fetchPromise;
 }
 
 export const api = {
-  // Search
-  searchTracks: (query: string, pageToken?: string): Promise<TrackSearchResult> =>
-    fetchJson(
+  // Search with auto-abort of previous query for instantaneous UI responsiveness
+  searchTracks: (query: string, pageToken?: string): Promise<TrackSearchResult> => {
+    return fetchJson(
       `${API_BASE}/search?q=${encodeURIComponent(query)}&type=song${
         pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : ""
       }`,
-    ),
+      { ttlSeconds: 180 }, // 3 minute cache
+    );
+  },
 
-  searchAll: (query: string): Promise<SearchResults> =>
-    fetchJson(`${API_BASE}/search?q=${encodeURIComponent(query)}&type=all`),
+  searchAll: (query: string): Promise<SearchResults> => {
+    if (activeSearchAbortController) {
+      activeSearchAbortController.abort();
+    }
+    activeSearchAbortController = new AbortController();
+    return fetchJson(
+      `${API_BASE}/search?q=${encodeURIComponent(query)}&type=all`,
+      { ttlSeconds: 180, signal: activeSearchAbortController.signal },
+    );
+  },
 
   getSearchSuggestions: (query: string): Promise<string[]> =>
     fetchJson(
       `${API_BASE}/search/suggestions?q=${encodeURIComponent(query)}`,
+      { ttlSeconds: 300 }, // 5 minute cache
     ),
 
   getSearchRecommendations: (): Promise<SearchRecommendations> =>
-    fetchJson(`${API_BASE}/search/recommendations`),
+    fetchJson(`${API_BASE}/search/recommendations`, { ttlSeconds: 600 }), // 10 minute cache
 
-  // Explore & Home Feed
+  // Explore & Home Feed with 10-minute cache
   getExploreFeed: (): Promise<ExploreFeed> =>
-    fetchJson(`${API_BASE}/explore`),
+    fetchJson(`${API_BASE}/explore`, { ttlSeconds: 600 }),
 
-  // Track info & Playback
+  // Track info & Playback (cached for instant replay & fast queuing)
   getTrack: (trackId: string): Promise<Track> =>
-    fetchJson(`${API_BASE}/tracks/${encodeURIComponent(trackId)}`),
+    fetchJson(`${API_BASE}/tracks/${encodeURIComponent(trackId)}`, {
+      ttlSeconds: 900,
+    }),
 
   getPlayback: (sourceTrackId: string): Promise<PlaybackResult> =>
     fetchJson(
       `${API_BASE}/tracks/${encodeURIComponent(sourceTrackId)}/playback`,
+      { ttlSeconds: 1800 }, // 30 min cache for audio stream URLs
     ),
 
   getQueue: (trackId: string): Promise<QueueResult> =>
-    fetchJson(`${API_BASE}/tracks/${encodeURIComponent(trackId)}/queue`),
+    fetchJson(`${API_BASE}/tracks/${encodeURIComponent(trackId)}/queue`, {
+      ttlSeconds: 300,
+    }),
 
   getLyrics: (
     trackId: string,
@@ -125,18 +209,25 @@ export const api = {
     const qs = params.toString() ? `?${params.toString()}` : "";
     return fetchJson(
       `${API_BASE}/tracks/${encodeURIComponent(trackId)}/lyrics${qs}`,
+      { ttlSeconds: 3600 }, // 1 hour lyrics cache
     );
   },
 
-  // Artists, Albums, Playlists
+  // Artists, Albums, Playlists (Cached for rapid back-and-forth navigation)
   getArtist: (artistId: string): Promise<ArtistDetails> =>
-    fetchJson(`${API_BASE}/artists/${encodeURIComponent(artistId)}`),
+    fetchJson(`${API_BASE}/artists/${encodeURIComponent(artistId)}`, {
+      ttlSeconds: 600,
+    }),
 
   getAlbum: (albumId: string): Promise<AlbumDetails> =>
-    fetchJson(`${API_BASE}/albums/${encodeURIComponent(albumId)}`),
+    fetchJson(`${API_BASE}/albums/${encodeURIComponent(albumId)}`, {
+      ttlSeconds: 600,
+    }),
 
   getPlaylist: (playlistId: string): Promise<PlaylistDetails> =>
-    fetchJson(`${API_BASE}/playlists/${encodeURIComponent(playlistId)}`),
+    fetchJson(`${API_BASE}/playlists/${encodeURIComponent(playlistId)}`, {
+      ttlSeconds: 600,
+    }),
 
   // AI Smart Queue & Next Song Predictions
   getAISuggestions: async (

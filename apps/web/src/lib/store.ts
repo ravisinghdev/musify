@@ -43,7 +43,7 @@ export function getApiBase(): string {
     // On native mobile devices, NEVER use localhost (points to phone loopback).
     // Use the live production backend URL:
     if (isNative) {
-      return "https://musify-ten-bay.vercel.app/api/v1";
+      return "https://musify-4fzw.onrender.com/api/v1";
     }
 
     // When running locally on laptop/desktop in browser on port 3000:
@@ -59,7 +59,7 @@ export function getApiBase(): string {
   }
 
   // 4. Default fallback:
-  return "https://musify-ten-bay.vercel.app/api/v1";
+  return "https://musify-4fzw.onrender.com/api/v1";
 }
 
 const API_BASE: any = {

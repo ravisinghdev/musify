@@ -15,16 +15,15 @@ const nextConfig: NextConfig = {
       }
     : {
         async rewrites() {
-          if (process.env.API_URL) {
-            const target = process.env.API_URL.replace(/\/+$/, "");
-            return [
-              {
-                source: "/api/:path*",
-                destination: `${target}/api/:path*`,
-              },
-            ];
-          }
-          return [];
+          const target = (
+            process.env.API_URL || "https://musify-4fzw.onrender.com"
+          ).replace(/\/+$/, "");
+          return [
+            {
+              source: "/api/:path*",
+              destination: `${target}/api/:path*`,
+            },
+          ];
         },
       }),
 };

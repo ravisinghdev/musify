@@ -423,7 +423,7 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
                 type="text"
                 value={customServerUrl}
                 onChange={(e) => setCustomServerUrl(e.target.value)}
-                placeholder="https://musify-ten-bay.vercel.app/api/v1"
+                placeholder="https://musify-4fzw.onrender.com/api/v1"
                 className="w-full rounded-lg border border-white/10 bg-black/40 px-2.5 py-1.5 text-xs font-mono text-zinc-200 outline-none focus:border-indigo-500"
               />
               <div className="flex items-center gap-2 pt-1">
@@ -438,7 +438,7 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
                 <button
                   type="button"
                   onClick={() => {
-                    const defUrl = "https://musify-ten-bay.vercel.app/api/v1";
+                    const defUrl = "https://musify-4fzw.onrender.com/api/v1";
                     setCustomServerUrl(defUrl);
                     localStorage.setItem("musify_api_url", defUrl);
                     setServerTestStatus("Reset to default production API.");

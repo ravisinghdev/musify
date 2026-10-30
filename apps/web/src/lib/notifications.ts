@@ -30,7 +30,7 @@ export function getApiBase(): string {
     );
 
     if (isNative) {
-      return "https://musify-ten-bay.vercel.app/api/v1";
+      return "https://musify-4fzw.onrender.com/api/v1";
     }
 
     if (
@@ -42,7 +42,7 @@ export function getApiBase(): string {
 
     return "/api/v1";
   }
-  return "https://musify-ten-bay.vercel.app/api/v1";
+  return "https://musify-4fzw.onrender.com/api/v1";
 }
 
 function getHeaders(sessionId?: string | null): Record<string, string> {
