@@ -78,6 +78,35 @@ export function YouTubeAudioEngine({
     onPrevRef.current = onPrev;
   });
 
+  // Silent HTML5 audio track to maintain OS background audio focus & prevent mobile browser suspension
+  const silentAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const audio = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA");
+      audio.loop = true;
+      audio.volume = 0.001;
+      silentAudioRef.current = audio;
+    } catch {}
+
+    return () => {
+      try {
+        silentAudioRef.current?.pause();
+        silentAudioRef.current = null;
+      } catch {}
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!silentAudioRef.current) return;
+    if (isPlaying) {
+      silentAudioRef.current.play().catch(() => {});
+    } else {
+      silentAudioRef.current.pause();
+    }
+  }, [isPlaying]);
+
   // Sync with OS Media Session API & Android Native Foreground Playback Service
   useEffect(() => {
     // 1. Android Native Background Playback Bridge
@@ -260,7 +289,26 @@ export function YouTubeAudioEngine({
                 onIsPlayingChangeRef.current(false);
               }
             } else if (event.data === 2) {
-              onIsPlayingChangeRef.current(false);
+              // If Musify expects audio to be playing (isPlayingRef.current is true),
+              // this pause event was triggered by browser/OS backgrounding or visibility change.
+              // Auto-resume immediately!
+              if (isPlayingRef.current) {
+                try {
+                  event.target.playVideo();
+                } catch {}
+                setTimeout(() => {
+                  if (isPlayingRef.current) {
+                    try {
+                      const state = playerRef.current?.getPlayerState?.();
+                      if (state === 2) {
+                        playerRef.current?.playVideo?.();
+                      }
+                    } catch {}
+                  }
+                }, 150);
+              } else {
+                onIsPlayingChangeRef.current(false);
+              }
             } else if (event.data === 0) {
               // Direct repeat handling: replay instantly from 0s
               if (isRepeatRef.current) {
@@ -436,13 +484,13 @@ export function YouTubeAudioEngine({
       aria-hidden="true"
       style={{
         position: "fixed",
-        bottom: "-500px",
-        right: "-500px",
-        width: "200px",
-        height: "200px",
-        opacity: 1,
+        top: 0,
+        left: 0,
+        width: "1px",
+        height: "1px",
+        opacity: 0.01,
         pointerEvents: "none",
-        zIndex: -9999,
+        zIndex: -1,
       }}
     >
       <div id="musify-hidden-yt-player" />

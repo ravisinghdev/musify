@@ -88,9 +88,22 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onPause() {
         super.onPause();
-        // Keep timers running so background audio and YouTube playback do not freeze
         try {
             if (getBridge() != null && getBridge().getWebView() != null) {
+                // Keep WebView resumed & timers running so audio playback continues in background
+                getBridge().getWebView().onResume();
+                getBridge().getWebView().resumeTimers();
+            }
+        } catch (Exception ignored) {}
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        try {
+            if (getBridge() != null && getBridge().getWebView() != null) {
+                // Maintain active WebView state during screen-off
+                getBridge().getWebView().onResume();
                 getBridge().getWebView().resumeTimers();
             }
         } catch (Exception ignored) {}

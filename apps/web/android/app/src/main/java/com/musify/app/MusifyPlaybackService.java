@@ -183,11 +183,12 @@ public class MusifyPlaybackService extends Service implements AudioManager.OnAud
             if (artist != null) currentArtist = artist;
             isPlaying = playing;
 
+            // Immediately satisfy Android's 5-second startForeground mandate
+            buildAndShowNotification();
+
             if (artworkUrl != null && !artworkUrl.equals(currentArtworkUrl)) {
                 currentArtworkUrl = artworkUrl;
                 loadArtworkAsync(artworkUrl);
-            } else {
-                buildAndShowNotification();
             }
         } else if (ACTION_PLAY.equals(action)) {
             sendControlActionToApp("play");
@@ -294,7 +295,11 @@ public class MusifyPlaybackService extends Service implements AudioManager.OnAud
         builder.addAction(android.R.drawable.ic_media_next, "Next", nextPendingIntent);
 
         Notification notification = builder.build();
-        startForeground(NOTIFICATION_ID, notification);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(NOTIFICATION_ID, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
+        } else {
+            startForeground(NOTIFICATION_ID, notification);
+        }
     }
 
     private void sendControlActionToApp(String action) {
