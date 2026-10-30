@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import React from "react";
 
 interface AppLogoProps {
@@ -38,14 +37,20 @@ export function AppLogo({
       } ${className}`}
     >
       {/* 3D Glassmorphic Emblem */}
-      <Image
-        src="/image/musify_logo.png"
-        alt="Musify Logo"
-        width={iconDimensions.px}
-        height={iconDimensions.px}
-        className="h-full w-full object-cover"
-        priority
-      />
+      <div
+        className={`relative shrink-0 overflow-hidden shadow-md shadow-indigo-500/20 border border-white/10 ${iconDimensions.class}`}
+      >
+        <img
+          src="/icon-192.png"
+          alt="Musify Logo"
+          width={iconDimensions.px}
+          height={iconDimensions.px}
+          className="h-full w-full object-contain"
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).src = "/musify_logo.png";
+          }}
+        />
+      </div>
 
       {/* Brand Wordmark with signature glowing indigo dot */}
       {showText && (
@@ -53,9 +58,6 @@ export function AppLogo({
           className={`font-bold font-sans text-white transition-colors group-hover:text-zinc-100 ${textStyles}`}
         >
           Musify
-          {/* <span className="text-[#818cf8] transition-all duration-300 group-hover:text-indigo-400 drop-shadow-[0_0_8px_rgba(129,140,248,0.7)]">
-            .
-          </span> */}
         </span>
       )}
     </div>

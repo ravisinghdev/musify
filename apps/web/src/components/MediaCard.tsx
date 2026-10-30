@@ -42,7 +42,7 @@ export function MediaCard({
   return (
     <div
       onClick={onClick}
-      className={`group relative flex flex-col rounded-2xl border border-white/[0.06] bg-[#0c0e15]/70 p-3 shadow-md backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-[#121520] hover:shadow-2xl cursor-pointer select-none ${className}`}
+      className={`group relative flex flex-col rounded-2xl border border-white/[0.08] bg-white/[0.03] p-3 shadow-md backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.08] hover:shadow-2xl cursor-pointer select-none ${className}`}
     >
       {/* Artwork Box */}
       <div className={`relative w-full overflow-hidden rounded-xl bg-zinc-800 ${aspectClass}`}>

@@ -84,10 +84,10 @@ export function FullscreenVisualizer({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex flex-col justify-between p-3 sm:p-6 pb-6 sm:pb-8 text-white select-none animate-fade-in overflow-hidden bg-[#07090e] h-[100dvh] max-h-screen w-screen box-border"
+      className="fixed inset-0 z-50 flex flex-col justify-between p-3 sm:p-6 pb-6 sm:pb-8 text-white select-none animate-fade-in overflow-hidden bg-black/80 backdrop-blur-3xl h-[100dvh] max-h-screen w-screen box-border"
     >
-      {/* 100% Solid Opaque Pitch-Black Base Layer - completely blocks underlying page */}
-      <div className="pointer-events-none absolute inset-0 bg-[#07090e] z-0" />
+      {/* Translucent Backdrop Layer */}
+      <div className="pointer-events-none absolute inset-0 bg-black/40 z-0" />
 
       {/* Vibrant Ambient Dynamic Gradient Over Opaque Base */}
       <div

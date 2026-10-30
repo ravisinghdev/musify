@@ -140,7 +140,7 @@ export function LyricsModal({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative flex max-h-[85vh] w-full max-w-xl flex-col rounded-3xl border border-white/10 bg-[#0c0e15]/95 p-6 shadow-2xl backdrop-blur-2xl sm:p-8"
+        className="relative flex max-h-[85vh] w-full max-w-xl flex-col rounded-3xl border border-white/10 bg-black/60 p-6 shadow-2xl backdrop-blur-2xl sm:p-8"
       >
         {/* Ambient Lyric Glow Aura */}
         <div className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 h-64 w-64 rounded-full bg-indigo-500/20 blur-[100px]" />

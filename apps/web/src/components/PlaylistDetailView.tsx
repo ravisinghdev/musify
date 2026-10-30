@@ -75,7 +75,7 @@ export function PlaylistDetailView({
       </button>
 
       {/* Playlist Hero Banner */}
-      <div className="relative flex flex-col sm:flex-row items-center gap-6 sm:gap-8 rounded-3xl border border-white/10 bg-[#0d1017]/80 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl overflow-hidden select-none">
+      <div className="relative flex flex-col sm:flex-row items-center gap-6 sm:gap-8 rounded-3xl border border-white/10 bg-black/30 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl overflow-hidden select-none">
         {playlist.artwork && (
           <div
             className="absolute inset-0 -z-10 bg-cover bg-center opacity-30 blur-2xl scale-110"
@@ -84,7 +84,7 @@ export function PlaylistDetailView({
             }}
           />
         )}
-        <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#07090e] via-[#07090e]/70 to-transparent" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
 
         {/* Playlist Artwork */}
         <div className="relative h-44 w-44 sm:h-52 sm:w-52 shrink-0 overflow-hidden rounded-2xl border border-white/10 shadow-2xl bg-zinc-900">

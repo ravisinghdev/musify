@@ -16,7 +16,15 @@ async function resolveAuthUser(headers: Record<string, string | undefined>) {
 }
 
 const app = new Elysia()
-  .use(cors())
+  .use(
+    cors({
+      origin: true, // reflects the request origin (allows all origins including Vercel)
+      credentials: true,
+      allowedHeaders: ["Content-Type", "Authorization", "x-user-session-id"],
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      preflight: true,
+    }),
+  )
   .get("/api/health", () => ({
     status: "ok",
     service: "musify-api",

@@ -72,7 +72,7 @@ export function QueueModal({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative flex max-h-[85vh] w-full max-w-2xl flex-col rounded-3xl border border-white/10 bg-[#0d1017]/95 p-6 shadow-2xl backdrop-blur-2xl sm:p-7"
+        className="relative flex max-h-[85vh] w-full max-w-2xl flex-col rounded-3xl border border-white/10 bg-black/60 p-6 shadow-2xl backdrop-blur-2xl sm:p-7"
       >
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">

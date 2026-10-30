@@ -24,7 +24,7 @@ export function HeroBanner({
   isPlaying = false,
   onPlayHero,
   onOpenAI,
-  backgroundImageUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1600&auto=format&fit=crop&q=80",
+  backgroundImageUrl = "https://i.ytimg.com/vi/DlFXDl_ROAM/hqdefault.jpg",
   className = "",
 }: HeroBannerProps) {
   const bgImage = currentTrack?.artworkUrl || backgroundImageUrl;

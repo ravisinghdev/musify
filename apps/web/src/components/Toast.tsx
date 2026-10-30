@@ -42,7 +42,7 @@ function ToastItem({
   return (
     <div
       role="status"
-      className="pointer-events-auto flex items-center gap-3 rounded-2xl border border-white/10 bg-[#0d1017]/90 px-4 py-3 shadow-[0_10px_35px_rgba(0,0,0,0.6)] backdrop-blur-xl animate-fade-in transition-all duration-300"
+      className="pointer-events-auto flex items-center gap-3 rounded-2xl border border-white/10 bg-black/70 px-4 py-3 shadow-[0_10px_35px_rgba(0,0,0,0.6)] backdrop-blur-xl animate-fade-in transition-all duration-300"
     >
       <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white">
         {toast.type === "heart" ? (

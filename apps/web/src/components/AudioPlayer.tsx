@@ -27,6 +27,7 @@ interface AudioPlayerProps {
   onPrev?: () => void;
   onToggleLyrics?: () => void;
   onToggleRightPanel?: () => void;
+  onOpenQueueModal?: () => void;
   isRightPanelOpen?: boolean;
   onOpenVisualizer?: () => void;
 }
@@ -60,25 +61,41 @@ export function AudioPlayer({
   onPrev,
   onToggleLyrics,
   onToggleRightPanel,
+  onOpenQueueModal,
   isRightPanelOpen = true,
   onOpenVisualizer,
 }: AudioPlayerProps) {
   const [showCountdown, setShowCountdown] = useState(false);
   const [imgError, setImgError] = useState(false);
 
+  const handleQueueClick = () => {
+    if (
+      onOpenQueueModal &&
+      (typeof window === "undefined" || window.innerWidth < 1280)
+    ) {
+      onOpenQueueModal();
+    } else if (onToggleRightPanel) {
+      onToggleRightPanel();
+    }
+  };
+
   const hasTrack = Boolean(currentTrack);
   const trackTitle = currentTrack?.title || "No Track Selected";
-  const artistsText = currentTrack?.artists && currentTrack.artists.length > 0
-    ? currentTrack.artists.map((a) => a.name).join(", ")
-    : "Select any song to start listening";
+  const artistsText =
+    currentTrack?.artists && currentTrack.artists.length > 0
+      ? currentTrack.artists.map((a) => a.name).join(", ")
+      : "Select any song to start listening";
 
   const fallbackArt = currentTrack?.sourceTrackId
     ? `https://i.ytimg.com/vi/${currentTrack.sourceTrackId}/hqdefault.jpg`
     : undefined;
-  const displayArtwork = imgError ? fallbackArt : currentTrack?.artworkUrl || fallbackArt;
+  const displayArtwork = imgError
+    ? fallbackArt
+    : currentTrack?.artworkUrl || fallbackArt;
 
   const effectiveDuration = hasTrack
-    ? duration || (currentTrack?.durationMs ? currentTrack.durationMs / 1000 : 0)
+    ? duration ||
+      (currentTrack?.durationMs ? currentTrack.durationMs / 1000 : 0)
     : 0;
   const progressPercent = effectiveDuration
     ? Math.min(100, Math.max(0, (currentTime / effectiveDuration) * 100))
@@ -91,16 +108,42 @@ export function AudioPlayer({
   return (
     <aside
       aria-label="Audio player"
-      className="fixed bottom-0 left-0 right-0 z-50 h-[84px] border-t border-white/[0.08] bg-[#07090e]/95 px-4 backdrop-blur-2xl shadow-[0_-12px_40px_rgba(0,0,0,0.7)] sm:px-6 select-none flex items-center pb-[env(safe-area-inset-bottom,0px)]"
+      className="fixed bottom-0 left-0 right-0 z-50 h-[84px] border-t border-white/10  px-3 backdrop-blur-2xl shadow-[0_-12px_40px_rgba(0,0,0,0.6)] sm:px-6 select-none flex items-center pb-[env(safe-area-inset-bottom,0px)]"
     >
-      <div className="mx-auto flex w-full max-w-[1920px] items-center justify-between gap-4">
+      {/* Top Edge Full-Width Time Slider / Scrubber */}
+      <div className="absolute -top-2 left-0 right-0 h-4 flex items-center group cursor-pointer z-30">
+        <div className="h-1 group-hover:h-2 w-full bg-white/10 transition-all relative">
+          <div
+            className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 transition-all relative"
+            style={{ width: `${progressPercent}%` }}
+          >
+            <span className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.9)] opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity" />
+          </div>
+        </div>
+        <input
+          type="range"
+          min={0}
+          max={effectiveDuration || 100}
+          value={currentTime}
+          disabled={!hasTrack}
+          onChange={(e) => onSeek && onSeek(Number(e.target.value))}
+          aria-label="Seek track position"
+          className="absolute inset-0 w-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+        />
+      </div>
+
+      <div className="mx-auto flex w-full max-w-[1920px] items-center justify-between gap-3 sm:gap-4">
         {/* Left: Track Info & Glowing Artwork & Like */}
-        <div className="flex min-w-0 max-w-[125px] xs:max-w-[150px] sm:max-w-[260px] items-center gap-2 sm:gap-3 shrink-0">
+        <div className="flex min-w-0 max-w-[130px] xs:max-w-[160px] sm:max-w-[260px] items-center gap-2 sm:gap-3 shrink-0">
           <div
             onClick={hasTrack ? onOpenVisualizer : undefined}
-            title={hasTrack ? "Click to open Fullscreen Visualizer" : "Musify Player"}
+            title={
+              hasTrack ? "Click to open Fullscreen Visualizer" : "Musify Player"
+            }
             className={`relative h-10 w-10 sm:h-12 sm:w-12 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-zinc-900 shadow-md transition ${
-              hasTrack ? "cursor-pointer hover:scale-105 group" : "cursor-default"
+              hasTrack
+                ? "cursor-pointer hover:scale-105 group"
+                : "cursor-default"
             }`}
           >
             {displayArtwork ? (
@@ -155,12 +198,12 @@ export function AudioPlayer({
         {/* Center: Controls & Scrub Bar */}
         <div className="flex max-w-[620px] flex-1 flex-col items-center gap-1 sm:gap-1.5 px-1 sm:px-2 min-w-0">
           {/* Controls Buttons Row */}
-          <div className="flex items-center gap-3 sm:gap-5">
+          <div className="flex items-center gap-2.5 xs:gap-3.5 sm:gap-5">
             <button
               onClick={onToggleShuffle}
               disabled={!hasTrack}
               aria-label="Toggle Shuffle"
-              className={`hidden sm:inline-flex transition hover:scale-110 p-1 relative disabled:opacity-40 disabled:cursor-not-allowed ${
+              className={`inline-flex transition hover:scale-110 p-1 relative disabled:opacity-40 disabled:cursor-not-allowed ${
                 isShuffle
                   ? "text-indigo-400 drop-shadow-[0_0_8px_rgba(129,140,248,0.8)]"
                   : "text-zinc-500 hover:text-zinc-300"
@@ -207,7 +250,7 @@ export function AudioPlayer({
               onClick={onToggleRepeat}
               disabled={!hasTrack}
               aria-label="Toggle Repeat / Loop"
-              className={`hidden sm:inline-flex transition hover:scale-110 p-1 relative disabled:opacity-40 disabled:cursor-not-allowed ${
+              className={`inline-flex transition hover:scale-110 p-1 relative disabled:opacity-40 disabled:cursor-not-allowed ${
                 isRepeat
                   ? "text-indigo-400 drop-shadow-[0_0_8px_rgba(129,140,248,0.8)]"
                   : "text-zinc-500 hover:text-zinc-300"
@@ -220,9 +263,23 @@ export function AudioPlayer({
             </button>
           </div>
 
-          {/* Seek Bar with Timers */}
-          <div className="flex w-full items-center gap-3 text-[11px] font-medium text-zinc-500 font-mono">
-            <span className="w-9 text-right tabular-nums">{formatTime(currentTime)}</span>
+          {/* Mobile Compact Timestamps */}
+          <div className="flex sm:hidden items-center gap-1.5 text-[10px] font-mono text-zinc-400">
+            <span className="tabular-nums">{formatTime(currentTime)}</span>
+            <span className="text-zinc-600">/</span>
+            <button
+              onClick={() => setShowCountdown(!showCountdown)}
+              className="tabular-nums hover:text-zinc-200 transition"
+            >
+              {displayEndTime}
+            </button>
+          </div>
+
+          {/* Desktop/Tablet Seek Bar with Timers */}
+          <div className="hidden sm:flex w-full items-center gap-3 text-[11px] font-medium text-zinc-500 font-mono">
+            <span className="w-9 text-right tabular-nums">
+              {formatTime(currentTime)}
+            </span>
 
             <div className="relative flex flex-1 items-center group py-1.5 cursor-pointer">
               {/* Background Track */}
@@ -250,7 +307,11 @@ export function AudioPlayer({
 
             <button
               onClick={() => setShowCountdown(!showCountdown)}
-              title={showCountdown ? "Click to show total duration" : "Click to show remaining time"}
+              title={
+                showCountdown
+                  ? "Click to show total duration"
+                  : "Click to show remaining time"
+              }
               className="w-9 text-left tabular-nums hover:text-zinc-300 transition cursor-pointer"
             >
               {displayEndTime}
@@ -258,8 +319,8 @@ export function AudioPlayer({
           </div>
         </div>
 
-        {/* Right Tools: Volume, Lyrics, Right Panel Toggle */}
-        <div className="flex items-center justify-end gap-2.5 sm:gap-4 sm:w-[240px]">
+        {/* Right Tools: Volume, Lyrics, Right Panel / Queue Toggle */}
+        <div className="flex items-center justify-end gap-2 sm:gap-4 sm:w-[240px]">
           {/* Custom Interactive Glass Volume Slider */}
           <div className="hidden sm:flex items-center gap-2 group">
             <button
@@ -319,13 +380,13 @@ export function AudioPlayer({
             <Icon name="mic" size={17} />
           </button>
 
-          {/* Right Panel / Queue Toggle */}
+          {/* Right Panel / Queue Toggle (Opens Queue Modal on Mobile/Tablet) */}
           <button
-            onClick={onToggleRightPanel}
+            onClick={handleQueueClick}
             title="Toggle Queue Panel"
             aria-label="Toggle Queue Panel"
             className={`transition p-1 hover:scale-105 ${
-              isRightPanelOpen ? "text-white" : "text-zinc-500 hover:text-white"
+              isRightPanelOpen ? "text-white" : "text-zinc-400 hover:text-white"
             }`}
           >
             <Icon name="queue" size={18} />

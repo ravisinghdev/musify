@@ -116,7 +116,7 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-sm rounded-3xl border border-white/10 bg-[#0d1017]/95 p-6 shadow-2xl backdrop-blur-2xl"
+        className="w-full max-w-sm rounded-3xl border border-white/10 bg-black/60 p-6 shadow-2xl backdrop-blur-2xl"
       >
         {/* Header */}
         <div className="flex items-center justify-between pb-2">

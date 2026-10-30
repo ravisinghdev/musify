@@ -510,8 +510,7 @@ export class YouTubeMusicProvider
         title: "Today's Top Hits",
         author: "Musify Editorial",
         description: "The hottest tracks right now across the globe.",
-        artworkUrl:
-          "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80",
+        artworkUrl: "https://i.ytimg.com/vi/DlFXDl_ROAM/hqdefault.jpg",
         tracksCount: 50,
       },
       {
@@ -519,8 +518,7 @@ export class YouTubeMusicProvider
         title: "Lo-Fi Beats & Study",
         author: "Musify Chill",
         description: "Soothing ambient beats to relax, focus, and code.",
-        artworkUrl:
-          "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&auto=format&fit=crop&q=80",
+        artworkUrl: "https://i.ytimg.com/vi/jfKfPfyJRdk/hqdefault.jpg",
         tracksCount: 80,
       },
       {
@@ -528,8 +526,7 @@ export class YouTubeMusicProvider
         title: "Viral Hits 2026",
         author: "Musify Charts",
         description: "The songs taking over the internet and streaming.",
-        artworkUrl:
-          "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&auto=format&fit=crop&q=80",
+        artworkUrl: "https://i.ytimg.com/vi/d5gx74aac6o/hqdefault.jpg",
         tracksCount: 50,
       },
       {
@@ -537,8 +534,7 @@ export class YouTubeMusicProvider
         title: "Workout Mix",
         author: "Musify Fitness",
         description: "High-intensity bangers to fuel your gym sessions.",
-        artworkUrl:
-          "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600&auto=format&fit=crop&q=80",
+        artworkUrl: "https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg",
         tracksCount: 60,
       },
       {
@@ -546,8 +542,7 @@ export class YouTubeMusicProvider
         title: "Romantic Mix",
         author: "Musify Acoustic",
         description: "Intimate love songs and sweet acoustic melodies.",
-        artworkUrl:
-          "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&auto=format&fit=crop&q=80",
+        artworkUrl: "https://i.ytimg.com/vi/_deqdZmKzyg/hqdefault.jpg",
         tracksCount: 40,
       },
       {
@@ -555,8 +550,7 @@ export class YouTubeMusicProvider
         title: "Focus Mode",
         author: "Musify Ambient",
         description: "Deep binaural and electronic flow state sounds.",
-        artworkUrl:
-          "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&auto=format&fit=crop&q=80",
+        artworkUrl: "https://i.ytimg.com/vi/opwZ_PJ-F_E/hqdefault.jpg",
         tracksCount: 100,
       },
     ];

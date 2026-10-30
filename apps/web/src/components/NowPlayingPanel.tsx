@@ -68,14 +68,17 @@ export function NowPlayingPanel({
 
   const hasTrack = Boolean(currentTrack);
   const trackTitle = currentTrack?.title || "No Track Selected";
-  const artistsText = currentTrack?.artists && currentTrack.artists.length > 0
-    ? currentTrack.artists.map((a) => a.name).join(", ")
-    : "Select any song to start listening";
+  const artistsText =
+    currentTrack?.artists && currentTrack.artists.length > 0
+      ? currentTrack.artists.map((a) => a.name).join(", ")
+      : "Select any song to start listening";
 
   const fallbackArt = currentTrack?.sourceTrackId
     ? `https://i.ytimg.com/vi/${currentTrack.sourceTrackId}/hqdefault.jpg`
     : undefined;
-  const rawArt = imgError ? fallbackArt : currentTrack?.artworkUrl || fallbackArt;
+  const rawArt = imgError
+    ? fallbackArt
+    : currentTrack?.artworkUrl || fallbackArt;
   const artworkUrl = getHighResArtworkUrl(rawArt);
 
   const upNextItems = React.useMemo(() => {
@@ -94,14 +97,15 @@ export function NowPlayingPanel({
   }, [queue, currentTrack, queueIndex]);
 
   const effectiveDuration = hasTrack
-    ? duration || (currentTrack?.durationMs ? currentTrack.durationMs / 1000 : 0)
+    ? duration ||
+      (currentTrack?.durationMs ? currentTrack.durationMs / 1000 : 0)
     : 0;
   const progressPercent = effectiveDuration
     ? Math.min(100, Math.max(0, (currentTime / effectiveDuration) * 100))
     : 0;
 
   return (
-    <aside className="hidden w-[340px] shrink-0 h-full overflow-y-auto custom-scrollbar border-l border-white/[0.07] bg-[#07090e]/60 p-5 backdrop-blur-2xl xl:flex xl:flex-col select-none">
+    <aside className="hidden w-[340px] shrink-0 h-full overflow-y-auto custom-scrollbar border-l border-white/8 p-5 backdrop-blur-2xl xl:flex xl:flex-col select-none">
       {/* Big Square Artwork */}
       <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-white/10 bg-zinc-900 shadow-2xl">
         {artworkUrl ? (

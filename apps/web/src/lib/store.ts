@@ -51,8 +51,7 @@ export const SEED_TRACKS: Record<string, Track> = {
     id: "yt_die_with_a_smile",
     title: "Die With A Smile",
     artists: [{ id: "gaga-bruno", name: "Lady Gaga, Bruno Mars" }],
-    artworkUrl:
-      "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&auto=format&fit=crop&q=80",
+    artworkUrl: "https://i.ytimg.com/vi/DlFXDl_ROAM/hqdefault.jpg",
     durationMs: 251000,
     source: "youtube",
     sourceTrackId: "DlFXDl_ROAM",
@@ -61,8 +60,7 @@ export const SEED_TRACKS: Record<string, Track> = {
     id: "yt_birds_of_a_feather",
     title: "BIRDS OF A FEATHER",
     artists: [{ id: "billie-eilish", name: "Billie Eilish" }],
-    artworkUrl:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80",
+    artworkUrl: "https://i.ytimg.com/vi/d5gx74aac6o/hqdefault.jpg",
     durationMs: 196000,
     source: "youtube",
     sourceTrackId: "d5gx74aac6o",
@@ -71,8 +69,7 @@ export const SEED_TRACKS: Record<string, Track> = {
     id: "yt_sapphire",
     title: "Shape of You",
     artists: [{ id: "ed-sheeran", name: "Ed Sheeran" }],
-    artworkUrl:
-      "https://images.unsplash.com/photo-1682687220063-4742bd7fd538?w=800&auto=format&fit=crop&q=80",
+    artworkUrl: "https://i.ytimg.com/vi/xTvyyoF_LZY/hqdefault.jpg",
     durationMs: 233000,
     source: "youtube",
     sourceTrackId: "xTvyyoF_LZY",
@@ -81,8 +78,7 @@ export const SEED_TRACKS: Record<string, Track> = {
     id: "yt_espresso",
     title: "Espresso",
     artists: [{ id: "sabrina-carpenter", name: "Sabrina Carpenter" }],
-    artworkUrl:
-      "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400&auto=format&fit=crop&q=80",
+    artworkUrl: "https://i.ytimg.com/vi/eVli-tstM5E/hqdefault.jpg",
     durationMs: 175000,
     source: "youtube",
     sourceTrackId: "eVli-tstM5E",
@@ -91,8 +87,7 @@ export const SEED_TRACKS: Record<string, Track> = {
     id: "yt_call_out_my_name",
     title: "Call Out My Name",
     artists: [{ id: "the-weeknd", name: "The Weeknd" }],
-    artworkUrl:
-      "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=400&auto=format&fit=crop&q=80",
+    artworkUrl: "https://i.ytimg.com/vi/M4ZoCHID9GI/hqdefault.jpg",
     durationMs: 228000,
     source: "youtube",
     sourceTrackId: "M4ZoCHID9GI",
@@ -101,8 +96,7 @@ export const SEED_TRACKS: Record<string, Track> = {
     id: "yt_i_like_you",
     title: "I Like You",
     artists: [{ id: "post-malone", name: "Post Malone" }],
-    artworkUrl:
-      "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=400&auto=format&fit=crop&q=80",
+    artworkUrl: "https://i.ytimg.com/vi/n-UIRqgXjGA/hqdefault.jpg",
     durationMs: 192000,
     source: "youtube",
     sourceTrackId: "n-UIRqgXjGA",
@@ -111,8 +105,7 @@ export const SEED_TRACKS: Record<string, Track> = {
     id: "yt_blinding_lights",
     title: "Blinding Lights",
     artists: [{ id: "the-weeknd", name: "The Weeknd" }],
-    artworkUrl:
-      "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=400&auto=format&fit=crop&q=80",
+    artworkUrl: "https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg",
     durationMs: 200000,
     source: "youtube",
     sourceTrackId: "4NRXx6U8ABQ",
@@ -121,8 +114,7 @@ export const SEED_TRACKS: Record<string, Track> = {
     id: "yt_husn",
     title: "Husn",
     artists: [{ id: "anuv-jain", name: "Anuv Jain" }],
-    artworkUrl:
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&auto=format&fit=crop&q=80",
+    artworkUrl: "https://i.ytimg.com/vi/_deqdZmKzyg/hqdefault.jpg",
     durationMs: 218000,
     source: "youtube",
     sourceTrackId: "_deqdZmKzyg",
@@ -131,8 +123,7 @@ export const SEED_TRACKS: Record<string, Track> = {
     id: "yt_choo_lo",
     title: "Choo Lo",
     artists: [{ id: "the-local-train", name: "The Local Train" }],
-    artworkUrl:
-      "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400&auto=format&fit=crop&q=80",
+    artworkUrl: "https://i.ytimg.com/vi/opwZ_PJ-F_E/hqdefault.jpg",
     durationMs: 233000,
     source: "youtube",
     sourceTrackId: "opwZ_PJ-F_E",
@@ -144,8 +135,7 @@ export const INITIAL_PLAYLISTS: CustomPlaylist[] = [
     id: "cp-chill-vibes",
     name: "Chill Vibes",
     description: "Relaxing melodies and mellow beats to unwind to.",
-    artwork:
-      "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=300&auto=format&fit=crop&q=80",
+    artwork: "https://i.ytimg.com/vi/_deqdZmKzyg/hqdefault.jpg",
     tracks: [
       SEED_TRACKS.husn,
       SEED_TRACKS.sapphire,
@@ -158,8 +148,7 @@ export const INITIAL_PLAYLISTS: CustomPlaylist[] = [
     id: "cp-lofi-beats",
     name: "Lo-Fi Beats",
     description: "Quiet sunset aesthetics for study and calm.",
-    artwork:
-      "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&auto=format&fit=crop&q=80",
+    artwork: "https://i.ytimg.com/vi/jfKfPfyJRdk/hqdefault.jpg",
     tracks: [SEED_TRACKS.sapphire, SEED_TRACKS.callOutMyName, SEED_TRACKS.husn],
     createdAt: new Date().toISOString(),
   },
@@ -167,8 +156,7 @@ export const INITIAL_PLAYLISTS: CustomPlaylist[] = [
     id: "cp-workout-mix",
     name: "Workout Mix",
     description: "High-energy hits to power your workout sessions.",
-    artwork:
-      "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=300&auto=format&fit=crop&q=80",
+    artwork: "https://i.ytimg.com/vi/DlFXDl_ROAM/hqdefault.jpg",
     tracks: [
       SEED_TRACKS.dieWithASmile,
       SEED_TRACKS.iLikeYou,
@@ -180,8 +168,7 @@ export const INITIAL_PLAYLISTS: CustomPlaylist[] = [
     id: "cp-discover-weekly",
     name: "Discover Weekly",
     description: "Hand-picked dynamic track discoveries updated for you.",
-    artwork:
-      "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&auto=format&fit=crop&q=80",
+    artwork: "https://i.ytimg.com/vi/d5gx74aac6o/hqdefault.jpg",
     tracks: [
       SEED_TRACKS.dieWithASmile,
       SEED_TRACKS.sapphire,
@@ -583,7 +570,7 @@ export const store = {
       description: "Custom user created playlist.",
       artwork:
         initialTrack?.artworkUrl ||
-        "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=300&auto=format&fit=crop&q=80",
+        "/icon-192.png",
       tracks: initialTrack ? [initialTrack] : [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

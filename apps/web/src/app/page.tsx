@@ -52,57 +52,49 @@ const POPULAR_ARTISTS = [
     id: "the-weeknd",
     name: "The Weeknd",
     role: "Artist",
-    avatar:
-      "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=300&auto=format&fit=crop&q=80",
+    avatar: "https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg",
   },
   {
     id: "lady-gaga",
     name: "Lady Gaga",
     role: "Artist",
-    avatar:
-      "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&auto=format&fit=crop&q=80",
+    avatar: "https://i.ytimg.com/vi/DlFXDl_ROAM/hqdefault.jpg",
   },
   {
     id: "bruno-mars",
     name: "Bruno Mars",
     role: "Artist",
-    avatar:
-      "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&auto=format&fit=crop&q=80",
+    avatar: "https://i.ytimg.com/vi/DlFXDl_ROAM/hqdefault.jpg",
   },
   {
     id: "billie-eilish",
     name: "Billie Eilish",
     role: "Artist",
-    avatar:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80",
+    avatar: "https://i.ytimg.com/vi/d5gx74aac6o/hqdefault.jpg",
   },
   {
     id: "ed-sheeran",
     name: "Ed Sheeran",
     role: "Artist",
-    avatar:
-      "https://images.unsplash.com/photo-1682687220063-4742bd7fd538?w=300&auto=format&fit=crop&q=80",
+    avatar: "https://i.ytimg.com/vi/xTvyyoF_LZY/hqdefault.jpg",
   },
   {
     id: "post-malone",
     name: "Post Malone",
     role: "Artist",
-    avatar:
-      "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300&auto=format&fit=crop&q=80",
+    avatar: "https://i.ytimg.com/vi/n-UIRqgXjGA/hqdefault.jpg",
   },
   {
     id: "anuv-jain",
     name: "Anuv Jain",
     role: "Artist",
-    avatar:
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300&auto=format&fit=crop&q=80",
+    avatar: "https://i.ytimg.com/vi/_deqdZmKzyg/hqdefault.jpg",
   },
   {
     id: "the-local-train",
     name: "The Local Train",
     role: "Band",
-    avatar:
-      "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=300&auto=format&fit=crop&q=80",
+    avatar: "https://i.ytimg.com/vi/opwZ_PJ-F_E/hqdefault.jpg",
   },
 ];
 
@@ -112,32 +104,28 @@ const VIBE_STATIONS = [
     title: "Lo-Fi Beats & Study",
     query: "Lofi Hip Hop Chill Beats",
     subtitle: "Calm beats for flow",
-    artwork:
-      "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400&auto=format&fit=crop&q=80",
+    artwork: "https://i.ytimg.com/vi/jfKfPfyJRdk/hqdefault.jpg",
   },
   {
     id: "vibe-workout",
     title: "Workout Energy",
     query: "Workout Energy Gym Bangers",
     subtitle: "Fuel your peak performance",
-    artwork:
-      "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=400&auto=format&fit=crop&q=80",
+    artwork: "https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg",
   },
   {
     id: "vibe-latenight",
     title: "Late Night Drive",
     query: "Late Night Drive Hits",
     subtitle: "Atmospheric synth & chill",
-    artwork:
-      "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=400&auto=format&fit=crop&q=80",
+    artwork: "https://i.ytimg.com/vi/M4ZoCHID9GI/hqdefault.jpg",
   },
   {
     id: "vibe-deepwork",
     title: "Deep Coding Flow",
     query: "Deep Focus Ambient Instrumental",
     subtitle: "Zero-distraction electronics",
-    artwork:
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&auto=format&fit=crop&q=80",
+    artwork: "https://i.ytimg.com/vi/opwZ_PJ-F_E/hqdefault.jpg",
   },
 ];
 
@@ -359,7 +347,9 @@ export default function Home() {
   const handleAuthSuccess = (user: SafeUser) => {
     setAuthUser(user);
     showToast(
-      user.isAnonymous ? "Welcome" : `Welcome, ${user.displayName || user.email}!`,
+      user.isAnonymous
+        ? "Welcome"
+        : `Welcome, ${user.displayName || user.email}!`,
       "Cloud library synchronized",
       "success",
     );
@@ -528,7 +518,10 @@ export default function Home() {
           setQueueIndex(resolvedIdx);
           queueIndexRef.current = resolvedIdx;
         } else {
-          const updatedQ = [resolvedTrack, ...currentQ.filter((t) => t.id !== resolvedTrack.id)];
+          const updatedQ = [
+            resolvedTrack,
+            ...currentQ.filter((t) => t.id !== resolvedTrack.id),
+          ];
           setQueue(updatedQ);
           queueRef.current = updatedQ;
           setQueueIndex(0);
@@ -577,7 +570,8 @@ export default function Home() {
     const currentQ = queueRef.current;
     if (!currentQ || currentQ.length === 0) return;
 
-    let prevIndex = (queueIndexRef.current - 1 + currentQ.length) % currentQ.length;
+    let prevIndex =
+      (queueIndexRef.current - 1 + currentQ.length) % currentQ.length;
     if (isShuffleRef.current && currentQ.length > 1) {
       do {
         prevIndex = Math.floor(Math.random() * currentQ.length);
@@ -1028,7 +1022,7 @@ export default function Home() {
   }, [trendingTracks, quickPicksTracks]);
 
   return (
-    <main className="relative h-screen w-screen overflow-hidden bg-[#07090e] text-zinc-100 selection:bg-white/20 flex flex-col font-sans">
+    <main className="relative h-screen w-screen overflow-hidden text-zinc-100 selection:bg-white/20 flex flex-col font-sans">
       {/* Dynamic Canvas Ambient Blooms */}
       <div
         className="pointer-events-none fixed -top-40 -left-40 h-[600px] w-[600px] rounded-full blur-[140px] transition-all duration-1000"
@@ -1405,7 +1399,9 @@ export default function Home() {
                           index={iIdx}
                           isCurrent={currentTrack?.id === track.id}
                           isLiked={favoritesIds.has(track.id)}
-                          onPlay={(t) => handlePlayTrack(t, sectionTracks, iIdx)}
+                          onPlay={(t) =>
+                            handlePlayTrack(t, sectionTracks, iIdx)
+                          }
                           onToggleLike={(t) => handleToggleLike(t)}
                           onAddToPlaylist={(t) => setPlaylistToAddTo(t)}
                         />
@@ -1460,8 +1456,10 @@ export default function Home() {
                       return (
                         <div
                           key={`${t.id}-${idx}`}
-                          onClick={() => handlePlayTrack(t, quickPicksTracks, idx)}
-                          className={`group relative flex items-center gap-3 rounded-2xl border border-white/[0.06] bg-[#0c0e15]/70 p-2.5 transition-all duration-200 hover:border-white/20 hover:bg-[#131622] hover:shadow-lg cursor-pointer select-none ${
+                          onClick={() =>
+                            handlePlayTrack(t, quickPicksTracks, idx)
+                          }
+                          className={`group relative flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-2.5 transition-all duration-200 hover:border-white/20 hover:bg-white/[0.08] hover:shadow-lg cursor-pointer select-none ${
                             isCur
                               ? "border-indigo-500/40 bg-indigo-500/10 shadow-indigo-500/10 shadow-lg"
                               : ""
@@ -1478,7 +1476,8 @@ export default function Home() {
                                 alt={t.title}
                                 onError={(e) => {
                                   if (t.sourceTrackId) {
-                                    (e.currentTarget as HTMLImageElement).src = `https://i.ytimg.com/vi/${t.sourceTrackId}/hqdefault.jpg`;
+                                    (e.currentTarget as HTMLImageElement).src =
+                                      `https://i.ytimg.com/vi/${t.sourceTrackId}/hqdefault.jpg`;
                                   }
                                 }}
                                 className="h-full w-full object-cover transition group-hover:scale-105"
@@ -1540,14 +1539,15 @@ export default function Home() {
                 title="Recommended for you"
                 actionText="See all"
                 onAction={() => setActive("Explore")}
+                layout="carousel"
               >
                 {/* Dynamically render API playlists, fallback to custom playlists */}
                 {recommendations &&
                 recommendations.featuredPlaylists &&
                 recommendations.featuredPlaylists.length > 0
-                  ? recommendations.featuredPlaylists.map((pl) => (
+                  ? recommendations.featuredPlaylists.map((pl, idx) => (
                       <MediaCard
-                        key={pl.id}
+                        key={`${pl.id}-${idx}`}
                         id={pl.id}
                         title={pl.title}
                         subtitle={pl.description || "Curated Playlist"}
@@ -1559,9 +1559,9 @@ export default function Home() {
                     ))
                   : customPlaylists
                       .slice(0, 6)
-                      .map((pl) => (
+                      .map((pl, idx) => (
                         <MediaCard
-                          key={pl.id}
+                          key={`${pl.id}-${idx}`}
                           id={pl.id}
                           title={pl.name}
                           subtitle={pl.description}
@@ -1742,7 +1742,9 @@ export default function Home() {
                       artworkUrl={track.artworkUrl}
                       isCurrent={currentTrack?.id === track.id}
                       isPlaying={isPlaying}
-                      onClick={() => handlePlayTrack(track, recentlyPlayed, idx)}
+                      onClick={() =>
+                        handlePlayTrack(track, recentlyPlayed, idx)
+                      }
                       onPlay={() => handlePlayTrack(track, recentlyPlayed, idx)}
                     />
                   ))}
@@ -1802,6 +1804,7 @@ export default function Home() {
         onPrev={handlePrevTrack}
         onToggleLyrics={handleToggleLyrics}
         onToggleRightPanel={() => setIsRightPanelOpen(!isRightPanelOpen)}
+        onOpenQueueModal={() => setShowQueueModal(true)}
         isRightPanelOpen={isRightPanelOpen}
         onOpenVisualizer={() => setShowFullscreenVisualizer(true)}
       />

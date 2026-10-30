@@ -50,7 +50,7 @@ export function MediaSection({
           {children}
         </div>
       ) : (
-        <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
+        <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar scroll-smooth [&>*]:shrink-0 [&>*]:w-[160px] [&>*]:sm:w-[190px] [&>*]:md:w-[200px]">
           {children}
         </div>
       )}

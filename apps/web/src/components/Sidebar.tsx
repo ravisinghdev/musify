@@ -44,7 +44,7 @@ export function Sidebar({
 }: SidebarProps) {
   return (
     <aside
-      className={`hidden w-[240px] shrink-0 border-r border-white/[0.06] bg-[#07090e]/60 px-4 py-5 backdrop-blur-2xl lg:flex lg:flex-col h-full overflow-hidden select-none z-10 ${className}`}
+      className={`hidden w-[240px] shrink-0 border-r border-white/[0.08] px-4 py-5 backdrop-blur-2xl lg:flex lg:flex-col h-full overflow-hidden select-none z-10 ${className}`}
     >
       {/* Brand Logo */}
       <div className="mb-8 px-2">

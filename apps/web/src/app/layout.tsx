@@ -23,7 +23,8 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "Musify • Music for a better you",
-  description: "Next-generation glassmorphic music streaming web & Android player",
+  description:
+    "Next-generation glassmorphic music streaming web & Android player",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -31,8 +32,9 @@ export const metadata: Metadata = {
     title: "Musify",
   },
   icons: {
-    icon: "/image/musify_logo.png",
-    apple: "/image/musify_logo.png",
+    icon: "/icon-192.png",
+    shortcut: "/icon-192.png",
+    apple: "/icon-192.png",
   },
 };
 
@@ -55,7 +57,7 @@ export default function RootLayout({
           content="black-translucent"
         />
       </head>
-      <body className="min-h-full flex flex-col bg-[#07090e] text-white">
+      <body className="min-h-full flex flex-col   text-white">
         {children}
         <script
           dangerouslySetInnerHTML={{

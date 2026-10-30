@@ -3,7 +3,10 @@
   "services": {
     "api": {
       "root": "apps/api",
-      "framework": "elysia"
+      "framework": null,
+      "runtime": "nodejs22.x",
+      "buildCommand": "npx prisma generate",
+      "entrypoint": "src/index.ts"
     },
     "web": {
       "root": "apps/web",
