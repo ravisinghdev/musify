@@ -1387,7 +1387,7 @@ export default function Home() {
         />
 
         {/* Center Main Content Feed */}
-        <section className="min-w-0 flex-1 h-full overflow-y-auto custom-scrollbar px-5 pb-12 sm:px-8 lg:px-9">
+        <section className="min-w-0 flex-1 h-full overflow-y-auto custom-scrollbar px-4 pb-12 sm:px-8 lg:px-9 pt-[calc(env(safe-area-inset-top,0px)+24px)] lg:pt-0">
           {/* Modular Top Header */}
           <TopHeader
             query={query}

@@ -16,12 +16,33 @@ export function getApiBase(): string {
     return process.env.NEXT_PUBLIC_API_URL.replace(/\/+$/, "");
   }
   if (typeof window !== "undefined") {
-    if (window.location.port !== "3000") {
-      return "/api/v1";
+    try {
+      const customApi = localStorage.getItem("musify_api_url");
+      if (customApi && customApi.trim()) {
+        return customApi.trim().replace(/\/+$/, "");
+      }
+    } catch {}
+
+    const isNative = Boolean(
+      (window as any).Capacitor?.isNativePlatform?.() ||
+      window.location.protocol === "capacitor:" ||
+      (window.location.hostname === "localhost" && !window.location.port)
+    );
+
+    if (isNative) {
+      return "https://musify-ten-bay.vercel.app/api/v1";
     }
-    return `http://${window.location.hostname}:3001/api/v1`;
+
+    if (
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1"
+    ) {
+      return `http://${window.location.hostname}:3001/api/v1`;
+    }
+
+    return "/api/v1";
   }
-  return "http://localhost:3001/api/v1";
+  return "https://musify-ten-bay.vercel.app/api/v1";
 }
 
 function getHeaders(sessionId?: string | null): Record<string, string> {

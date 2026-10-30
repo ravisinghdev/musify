@@ -1045,11 +1045,12 @@ const app = new Elysia()
     set.redirect = "/downloads/Musify.apk";
   });
 
-// Run standalone server only in local development when not on Vercel
-if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
-  const port = process.env.PORT || 3001;
-  app.listen(port);
-  console.log(`MUSIFY API is running on port ${port}`);
+// Run standalone server on Render, Railway, Docker, or local Bun (unless executed inside Vercel serverless)
+if (!process.env.VERCEL) {
+  const port = Number(process.env.PORT) || 3001;
+  const hostname = "0.0.0.0";
+  app.listen({ port, hostname });
+  console.log(`MUSIFY API is running on http://${hostname}:${port}`);
 }
 
 // Export a universal HTTP handler compatible with Vercel Node.js Serverless Functions, Bun & Edge

@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: "Musify",
   webDir: "out",
   server: {
-    androidScheme: "https",
+    androidScheme: "http",
     cleartext: true,
   },
   android: {

@@ -72,7 +72,7 @@ export function MobileNavDrawer({
 
       {/* Drawer Panel with smooth slide transition */}
       <aside
-        className={`fixed inset-y-0 left-0 w-[300px] max-w-[85vw] bg-[#090b11]/98 border-r border-white/10 px-4 pt-5 pb-5 flex flex-col shadow-2xl backdrop-blur-3xl z-[100] transform transition-transform duration-300 ease-out ${
+        className={`fixed inset-y-0 left-0 w-[300px] max-w-[85vw] bg-[#090b11]/98 border-r border-white/10 px-4 pt-[calc(env(safe-area-inset-top,0px)+24px)] pb-[calc(env(safe-area-inset-bottom,0px)+16px)] flex flex-col shadow-2xl backdrop-blur-3xl z-[100] transform transition-transform duration-300 ease-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >

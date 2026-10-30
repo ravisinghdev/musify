@@ -28,28 +28,40 @@ export function getApiBase(): string {
 
   // 3. Client-side in browser & native apps:
   if (typeof window !== "undefined") {
-    const customApi = localStorage.getItem("musify_api_url");
-    if (customApi) return customApi.replace(/\/+$/, "");
+    try {
+      const customApi = localStorage.getItem("musify_api_url");
+      if (customApi && customApi.trim()) {
+        return customApi.trim().replace(/\/+$/, "");
+      }
+    } catch {}
 
-    // Native Android / iOS app via Capacitor:
+    // Check if running inside native Android / iOS app via Capacitor:
     const isNative = Boolean(
       (window as any).Capacitor?.isNativePlatform?.() ||
-      (window.location.protocol === "capacitor:" || (window.location.hostname === "localhost" && !window.location.port))
+      window.location.protocol === "capacitor:" ||
+      (window.location.hostname === "localhost" && !window.location.port)
     );
+
+    // On native mobile devices, NEVER use localhost (points to phone loopback).
+    // Use the live production backend URL:
     if (isNative) {
-      return "http://172.18.57.29:3001/api/v1";
+      return "https://musify-ten-bay.vercel.app/api/v1";
     }
 
-    // When running under Vercel (or reverse proxy) where /api is rewritten to the api service:
-    if (window.location.port !== "3000") {
-      return "/api/v1";
+    // When running locally on laptop/desktop in browser on port 3000:
+    if (
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1"
+    ) {
+      return `http://${window.location.hostname}:3001/api/v1`;
     }
-    // Standalone local development fallback where API runs on port 3001
-    return `http://${window.location.hostname}:3001/api/v1`;
+
+    // Default for web deployment (e.g. musify-ten-bay.vercel.app):
+    return "/api/v1";
   }
 
-  // 4. Default server fallback for local development
-  return "http://localhost:3001/api/v1";
+  // 4. Default fallback:
+  return "https://musify-ten-bay.vercel.app/api/v1";
 }
 
 const API_BASE: any = {

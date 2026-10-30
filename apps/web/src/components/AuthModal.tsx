@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Icon } from "./Icons";
-import { store, type SafeUser } from "../lib/store";
+import { store, type SafeUser, getApiBase } from "../lib/store";
 
 export interface AuthModalProps {
   isOpen: boolean;
@@ -20,6 +20,44 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [showServerConfig, setShowServerConfig] = useState(false);
+  const [customServerUrl, setCustomServerUrl] = useState(() =>
+    typeof window !== "undefined"
+      ? localStorage.getItem("musify_api_url") || getApiBase()
+      : "",
+  );
+  const [testingServer, setTestingServer] = useState(false);
+  const [serverTestStatus, setServerTestStatus] = useState<string | null>(null);
+
+  const handleTestAndSaveServer = async () => {
+    const cleanUrl = customServerUrl.trim().replace(/\/+$/, "");
+    if (!cleanUrl) {
+      localStorage.removeItem("musify_api_url");
+      setServerTestStatus("Reset to default server URL.");
+      return;
+    }
+    setTestingServer(true);
+    setServerTestStatus(null);
+    try {
+      const res = await fetch(`${cleanUrl}/search/recommendations`, {
+        signal: AbortSignal.timeout(4000),
+      }).catch(() =>
+        fetch(`${cleanUrl}`, { signal: AbortSignal.timeout(4000) }),
+      );
+      if (res.ok || res.status === 200 || res.status === 404) {
+        localStorage.setItem("musify_api_url", cleanUrl);
+        setServerTestStatus("Connected successfully! Saved as active backend.");
+      } else {
+        localStorage.setItem("musify_api_url", cleanUrl);
+        setServerTestStatus(`Server responded with status ${res.status}. Saved.`);
+      }
+    } catch {
+      localStorage.setItem("musify_api_url", cleanUrl);
+      setServerTestStatus("Saved. If unreachable, ensure device has network access.");
+    } finally {
+      setTestingServer(false);
+    }
+  };
 
   useEffect(() => {
     if (!isOpen) return;
@@ -359,6 +397,65 @@ export function AuthModal({ isOpen, onClose, onAuthSuccess }: AuthModalProps) {
             </button>
           </form>
         )}
+
+        {/* Server Connection Settings Expander */}
+        <div className="mt-4 pt-3 border-t border-white/[0.08]">
+          <button
+            type="button"
+            onClick={() => setShowServerConfig(!showServerConfig)}
+            className="flex items-center justify-between w-full text-[11px] text-zinc-400 hover:text-zinc-200 transition"
+          >
+            <span className="flex items-center gap-1.5">
+              <span>⚙️</span>
+              <span>API Server Connection</span>
+            </span>
+            <span className="text-[10px] text-zinc-500 font-mono">
+              {showServerConfig ? "Hide" : "Configure"}
+            </span>
+          </button>
+
+          {showServerConfig && (
+            <div className="mt-2.5 space-y-2 rounded-xl bg-white/[0.03] border border-white/10 p-2.5 animate-fade-in">
+              <label className="text-[10px] uppercase font-semibold text-zinc-400 tracking-wider">
+                Active Backend URL
+              </label>
+              <input
+                type="text"
+                value={customServerUrl}
+                onChange={(e) => setCustomServerUrl(e.target.value)}
+                placeholder="https://musify-ten-bay.vercel.app/api/v1"
+                className="w-full rounded-lg border border-white/10 bg-black/40 px-2.5 py-1.5 text-xs font-mono text-zinc-200 outline-none focus:border-indigo-500"
+              />
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={handleTestAndSaveServer}
+                  disabled={testingServer}
+                  className="flex-1 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-500/40 py-1 text-[11px] font-semibold text-indigo-200 transition disabled:opacity-50"
+                >
+                  {testingServer ? "Testing..." : "Test & Save Connection"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const defUrl = "https://musify-ten-bay.vercel.app/api/v1";
+                    setCustomServerUrl(defUrl);
+                    localStorage.setItem("musify_api_url", defUrl);
+                    setServerTestStatus("Reset to default production API.");
+                  }}
+                  className="rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 px-2.5 py-1 text-[11px] text-zinc-400 hover:text-white transition"
+                >
+                  Default
+                </button>
+              </div>
+              {serverTestStatus && (
+                <p className="text-[10px] text-zinc-400 font-medium">
+                  {serverTestStatus}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
