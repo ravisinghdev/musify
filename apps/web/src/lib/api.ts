@@ -26,10 +26,21 @@ export function getApiBase(): string {
     return new URL("api/v1", rawUrl).toString().replace(/\/+$/, "");
   }
 
-  // 3. Client-side in browser:
+  // 3. Client-side in browser & native apps:
   if (typeof window !== "undefined") {
+    const customApi = localStorage.getItem("musify_api_url");
+    if (customApi) return customApi.replace(/\/+$/, "");
+
+    // Native Android / iOS app via Capacitor:
+    const isNative = Boolean(
+      (window as any).Capacitor?.isNativePlatform?.() ||
+      (window.location.protocol === "capacitor:" || (window.location.hostname === "localhost" && !window.location.port))
+    );
+    if (isNative) {
+      return "http://172.18.57.29:3001/api/v1";
+    }
+
     // When running under Vercel (or reverse proxy) where /api is rewritten to the api service:
-    // Relative URL "/api/v1" automatically hits the same host and routes to the api service.
     if (window.location.port !== "3000") {
       return "/api/v1";
     }
