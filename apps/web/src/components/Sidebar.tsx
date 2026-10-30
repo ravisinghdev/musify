@@ -5,6 +5,7 @@ import { AppLogo } from "./AppLogo";
 import { Icon } from "./Icons";
 import { InstallPwaButton } from "./InstallPwaButton";
 import type { CustomPlaylist } from "../lib/store";
+import { haptics } from "../lib/haptics";
 
 export interface NavItem {
   name: string;
@@ -30,6 +31,7 @@ export interface SidebarProps {
 const DEFAULT_NAV_ITEMS: NavItem[] = [
   { name: "Home", icon: "home" },
   { name: "Explore", icon: "compass" },
+  { name: "AI Hub", icon: "sparkles" },
   { name: "Search", icon: "search" },
 ];
 
@@ -62,8 +64,11 @@ export function Sidebar({
         {navItems.map((item) => (
           <button
             key={item.name}
-            onClick={() => onSelectNav(item.name)}
-            className={`flex w-full items-center gap-3.5 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+            onClick={() => {
+              if (activeNav !== item.name) haptics.selection();
+              onSelectNav(item.name);
+            }}
+            className={`flex w-full items-center gap-3.5 rounded-xl px-3 py-2.5 text-sm font-medium transition active:scale-[0.98] ${
               activeNav === item.name
                 ? "bg-white/[0.1] text-white shadow-sm"
                 : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"

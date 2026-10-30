@@ -27,6 +27,7 @@ export interface MobileNavDrawerProps {
 const DEFAULT_NAV_ITEMS: NavItem[] = [
   { name: "Home", icon: "home" },
   { name: "Explore", icon: "compass" },
+  { name: "AI Hub", icon: "sparkles" },
   { name: "Search", icon: "search" },
 ];
 
@@ -64,7 +65,7 @@ export function MobileNavDrawer({
     >
       {/* Backdrop with smooth fade */}
       <div
-        className={`fixed inset-0 bg-black/75 backdrop-blur-md transition-opacity duration-300 ease-out ${
+        className={`fixed inset-0 bg-black/50 backdrop-blur-md transition-opacity duration-300 ease-out ${
           isOpen ? "opacity-100" : "opacity-0"
         }`}
         onClick={onClose}
@@ -72,7 +73,7 @@ export function MobileNavDrawer({
 
       {/* Drawer Panel with smooth slide transition */}
       <aside
-        className={`fixed inset-y-0 left-0 w-[300px] max-w-[85vw] bg-[#090b11]/98 border-r border-white/10 px-4 pt-[calc(env(safe-area-inset-top,0px)+24px)] pb-[calc(env(safe-area-inset-bottom,0px)+16px)] flex flex-col shadow-2xl backdrop-blur-3xl z-[100] transform transition-transform duration-300 ease-out ${
+        className={`fixed inset-y-0 left-0 w-[300px] max-w-[85vw] border-r border-white/10 px-4 pt-[calc(env(safe-area-inset-top,0px)+24px)] pb-[calc(env(safe-area-inset-bottom,0px)+16px)] flex flex-col shadow-2xl backdrop-blur-3xl z-[100] transform transition-transform duration-300 ease-out ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -286,7 +287,9 @@ export function MobileNavDrawer({
               <Icon
                 name="settings"
                 size={18}
-                className={activeNav === "Settings" ? "text-indigo-400" : "text-zinc-400"}
+                className={
+                  activeNav === "Settings" ? "text-indigo-400" : "text-zinc-400"
+                }
               />
               <span>Settings</span>
             </button>

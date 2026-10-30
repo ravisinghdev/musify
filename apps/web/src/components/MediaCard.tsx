@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Icon } from "./Icons";
+import { haptics } from "../lib/haptics";
 
 export interface MediaCardProps {
   id: string;
@@ -41,8 +42,11 @@ export function MediaCard({
 
   return (
     <div
-      onClick={onClick}
-      className={`group relative flex flex-col rounded-2xl border border-white/[0.08] bg-white/[0.03] p-3 shadow-md backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.08] hover:shadow-2xl cursor-pointer select-none ${className}`}
+      onClick={() => {
+        haptics.light();
+        onClick();
+      }}
+      className={`group relative flex flex-col rounded-2xl border border-white/[0.08] bg-white/[0.03] p-3 shadow-md backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.08] hover:shadow-2xl active:scale-[0.98] cursor-pointer select-none ${className}`}
     >
       {/* Artwork Box */}
       <div className={`relative w-full overflow-hidden rounded-xl bg-zinc-800 ${aspectClass}`}>
@@ -96,12 +100,12 @@ export function MediaCard({
       </div>
 
       {/* Metadata */}
-      <div className="mt-3 min-w-0">
-        <h4 className="truncate text-xs font-bold text-white group-hover:text-white tracking-tight sm:text-sm">
+      <div className="mt-2.5 min-w-0">
+        <h4 className="line-clamp-2 text-xs font-bold text-white group-hover:text-white tracking-tight sm:text-sm leading-snug" title={title}>
           {title}
         </h4>
         {subtitle && (
-          <p className="truncate text-[11px] text-zinc-400 mt-0.5 sm:text-xs">
+          <p className="line-clamp-1 text-[11px] text-zinc-400 mt-1 sm:text-xs" title={subtitle}>
             {subtitle}
           </p>
         )}

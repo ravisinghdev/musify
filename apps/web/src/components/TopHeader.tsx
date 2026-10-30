@@ -6,6 +6,8 @@ import { InstallPwaButton } from "./InstallPwaButton";
 import { NotificationPanel } from "./NotificationPanel";
 import type { SafeUser } from "../lib/store";
 import type { AppNotification } from "../lib/notifications";
+import { AppLogo } from "./AppLogo";
+import { haptics } from "../lib/haptics";
 
 export interface UserProfileInfo {
   name: string;
@@ -16,8 +18,8 @@ export interface UserProfileInfo {
 }
 
 export interface TopHeaderProps {
-  query: string;
-  onQueryChange: (q: string) => void;
+  query?: string;
+  onQueryChange?: (q: string) => void;
   suggestions?: string[];
   showSuggestions?: boolean;
   onSelectSuggestion?: (q: string) => void;
@@ -47,7 +49,7 @@ export interface TopHeaderProps {
 const DEFAULT_USER: UserProfileInfo = {
   name: "Musify Member",
   email: "guest@musify.io",
-  avatarUrl: "/icon-192.png",
+  avatarUrl: "/musify_logo.png",
   tier: "Musify Hi-Fi Lossless",
   qualityBadge: "Lossless",
 };
@@ -116,10 +118,15 @@ export function TopHeader({
   const handleStartVoiceSearch = () => {
     if (typeof window === "undefined") return;
     const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      onShowToast?.("Voice Search", "Voice input is not supported in this browser", "info");
+      onShowToast?.(
+        "Voice Search",
+        "Voice input is not supported in this browser",
+        "info",
+      );
       return;
     }
 
@@ -135,8 +142,12 @@ export function TopHeader({
       recognition.onresult = (event: any) => {
         const spoken = event.results?.[0]?.[0]?.transcript;
         if (spoken) {
-          onQueryChange(spoken);
-          onShowToast?.("Voice Recognized", `Searching: "${spoken}"`, "success");
+          onQueryChange?.(spoken);
+          onShowToast?.(
+            "Voice Recognized",
+            `Searching: "${spoken}"`,
+            "success",
+          );
         }
         setIsListening(false);
       };
@@ -186,11 +197,14 @@ export function TopHeader({
     <header
       className={`relative flex h-[76px] sm:h-[80px] items-center justify-between gap-2.5 sm:gap-4 border-b border-white/[0.06] ${className}`}
     >
-      {/* Left: Hamburger + Spacious Responsive Search Box */}
-      <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+      {/* Left: Hamburger (Mobile) + Brand Logo */}
+      <div className="flex min-w-0 items-center gap-3">
         {onOpenMobileMenu && (
           <button
-            onClick={onOpenMobileMenu}
+            onClick={() => {
+              haptics.light();
+              onOpenMobileMenu();
+            }}
             aria-label="Open navigation"
             className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 text-zinc-300 transition hover:bg-white/10 hover:text-white active:scale-95 lg:hidden shrink-0 shadow-sm"
           >
@@ -198,80 +212,7 @@ export function TopHeader({
           </button>
         )}
 
-        <div ref={searchBoxRef} className="relative w-full max-w-[540px]">
-          <label className="flex w-full items-center gap-2.5 sm:gap-3 rounded-full border border-white/15 px-3.5 sm:px-4 py-2 sm:py-2.5 shadow-inner backdrop-blur-xl transition-all focus-within:border-white/30 focus-within:bg-white/[0.07] focus-within:backdrop-blur-2xl">
-            <Icon name="search" size={16} className="text-zinc-400 shrink-0" />
-            <input
-              ref={searchInputRef}
-              value={query}
-              onChange={(e) => onQueryChange(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Escape") {
-                  onCloseSuggestions?.();
-                }
-              }}
-              placeholder="Search songs, artists, albums..."
-              className="w-full min-w-0 bg-transparent text-xs sm:text-sm text-white outline-none placeholder:text-zinc-500"
-            />
-            <div className="flex items-center gap-1 shrink-0">
-              <button
-                type="button"
-                onClick={handleStartVoiceSearch}
-                title={isListening ? "Listening... Speak now" : "Search by voice"}
-                className={`flex h-7 w-7 items-center justify-center rounded-full transition active:scale-90 ${
-                  isListening
-                    ? "bg-rose-500 text-white animate-pulse shadow-lg shadow-rose-500/50"
-                    : "text-zinc-400 hover:text-white hover:bg-white/10"
-                }`}
-              >
-                <Icon name="mic" size={14} />
-              </button>
-
-              {query ? (
-                <button
-                  type="button"
-                  onClick={onClearQuery}
-                  className="text-xs text-zinc-400 hover:text-white transition p-1 rounded-full hover:bg-white/10"
-                >
-                  <Icon name="close" size={14} />
-                </button>
-              ) : (
-                <kbd className="hidden sm:inline-block rounded border border-white/10 px-1.5 py-0.5 text-[10px] font-mono text-zinc-500">
-                  /
-                </kbd>
-              )}
-            </div>
-          </label>
-
-          {/* Autocomplete Suggestions — Full-Width Floating Sheet on Mobile, Anchored on Desktop */}
-          {showSuggestions && suggestions.length > 0 && (
-            <div className="fixed left-3 right-3 top-[76px] sm:absolute sm:left-0 sm:right-0 sm:top-full sm:w-full z-50 mt-1.5 overflow-hidden rounded-2xl border border-white/15 p-2 shadow-[0_20px_50px_rgba(0,0,0,0.9)] backdrop-blur-3xl animate-fade-in max-h-80 overflow-y-auto custom-scrollbar">
-              <div className="px-3 py-1.5 text-[10px] font-semibold text-zinc-500 uppercase tracking-wider flex items-center justify-between border-b border-white/5 mb-1">
-                <span>Suggestions</span>
-                <span className="text-[9px] text-zinc-600">
-                  Press Esc to close
-                </span>
-              </div>
-              {suggestions.map((item) => (
-                <button
-                  key={item}
-                  onClick={() => onSelectSuggestion && onSelectSuggestion(item)}
-                  className="group flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left text-xs sm:text-sm font-medium text-zinc-200 transition hover:bg-white/10 hover:text-white active:scale-[0.99]"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-400 group-hover:bg-indigo-500/20 group-hover:text-indigo-300 transition shrink-0">
-                      <Icon name="search" size={13} />
-                    </div>
-                    <span className="truncate">{item}</span>
-                  </div>
-                  <span className="text-[10px] text-zinc-500 opacity-0 group-hover:opacity-100 transition shrink-0">
-                    Search ↵
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        <AppLogo />
       </div>
 
       {/* Right Controls: Notifications Bell & User Profile */}
@@ -279,7 +220,10 @@ export function TopHeader({
         {/* Notification Bell */}
         <div ref={notifRef} className="relative">
           <button
-            onClick={() => setShowNotifications(!showNotifications)}
+            onClick={() => {
+              haptics.light();
+              setShowNotifications(!showNotifications);
+            }}
             aria-label="Notifications"
             className={`relative flex h-10 w-10 items-center justify-center rounded-full border transition shadow-sm ${
               showNotifications
@@ -334,7 +278,11 @@ export function TopHeader({
         ) : (
           <div ref={profileRef} className="relative">
             <div
-              onClick={() => (onOpenProfile ? onOpenProfile() : setShowProfileMenu(!showProfileMenu))}
+              onClick={() =>
+                onOpenProfile
+                  ? onOpenProfile()
+                  : setShowProfileMenu(!showProfileMenu)
+              }
               title="Profile & Preferences"
               className="flex h-10 w-10 items-center justify-center rounded-full overflow-hidden border border-white/20 ring-2 ring-white/5 shadow-lg cursor-pointer transition hover:scale-105 active:scale-95 bg-indigo-600/40 text-white font-bold text-xs"
             >

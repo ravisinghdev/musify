@@ -474,7 +474,7 @@ export const store = {
       description: "Custom user created playlist.",
       artwork:
         initialTrack?.artworkUrl ||
-        "/icon-192.png",
+        "/musify_logo.png",
       tracks: initialTrack ? [initialTrack] : [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

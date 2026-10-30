@@ -58,7 +58,9 @@ export default function DownloadPage() {
         </h1>
 
         <p className="mt-5 text-base sm:text-lg text-zinc-400 max-w-2xl font-light leading-relaxed">
-          Get the dedicated Musify apps for your phone and computer. Enjoy seamless background playback, full offline downloads, lock-screen controls, and zero ads.
+          Get the dedicated Musify apps for your phone and computer. Enjoy
+          seamless background playback, full offline downloads, lock-screen
+          controls, and zero ads.
         </p>
 
         {/* Download Cards Grid */}
@@ -80,7 +82,8 @@ export default function DownloadPage() {
                   Android App
                 </h2>
                 <p className="text-xs text-zinc-400 mt-1">
-                  Official signed APK for Android phones, tablets, and car units.
+                  Official signed APK for Android phones, tablets, and car
+                  units.
                 </p>
               </div>
 
@@ -96,7 +99,9 @@ export default function DownloadPage() {
               <ul className="space-y-2 pt-3 text-xs text-zinc-300 border-t border-white/[0.06]">
                 <li className="flex items-center gap-2.5">
                   <span className="text-emerald-400 font-bold">&#10003;</span>
-                  <span>Background lock-screen player with full notifications</span>
+                  <span>
+                    Background lock-screen player with full notifications
+                  </span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <span className="text-emerald-400 font-bold">&#10003;</span>
@@ -117,7 +122,11 @@ export default function DownloadPage() {
                 className="flex items-center justify-center gap-3 w-full rounded-2xl bg-white text-zinc-950 px-6 py-4 text-sm font-bold shadow-lg transition hover:bg-zinc-200 active:scale-98"
               >
                 <Icon name="download" size={18} />
-                <span>{downloadingAndroid ? "Starting Download..." : "Download Musify.apk"}</span>
+                <span>
+                  {downloadingAndroid
+                    ? "Starting Download..."
+                    : "Download Musify.apk"}
+                </span>
               </a>
               <p className="text-center text-[10px] text-zinc-500 mt-2.5">
                 Direct release download &bull; Verified safe & ad-free
@@ -158,11 +167,15 @@ export default function DownloadPage() {
               <ul className="space-y-2 pt-3 text-xs text-zinc-300 border-t border-white/[0.06]">
                 <li className="flex items-center gap-2.5">
                   <span className="text-indigo-400 font-bold">&#10003;</span>
-                  <span>Global hardware media keys support (Play/Pause/Skip)</span>
+                  <span>
+                    Global hardware media keys support (Play/Pause/Skip)
+                  </span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <span className="text-indigo-400 font-bold">&#10003;</span>
-                  <span>System tray mini-player and background minimization</span>
+                  <span>
+                    System tray mini-player and background minimization
+                  </span>
                 </li>
                 <li className="flex items-center gap-2.5">
                   <span className="text-indigo-400 font-bold">&#10003;</span>
@@ -179,7 +192,11 @@ export default function DownloadPage() {
                 className="flex items-center justify-center gap-3 w-full rounded-2xl bg-white text-zinc-950 px-6 py-4 text-sm font-bold shadow-lg transition hover:bg-zinc-200 active:scale-98"
               >
                 <Icon name="download" size={18} />
-                <span>{downloadingWindows ? "Starting Download..." : "Download Musify.exe"}</span>
+                <span>
+                  {downloadingWindows
+                    ? "Starting Download..."
+                    : "Download Musify.exe"}
+                </span>
               </a>
               <p className="text-center text-[10px] text-zinc-500 mt-2.5">
                 Windows 64-bit &bull; Portable single executable
@@ -197,13 +214,18 @@ export default function DownloadPage() {
             <div>
               <p className="font-semibold text-white mb-1">Android Phones:</p>
               <p className="text-zinc-400">
-                Tap <strong>Download Musify.apk</strong>. Once downloaded, tap the notification or file in Downloads and choose <strong>Install</strong>. If prompted, toggle &quot;Allow installation from this source&quot;.
+                Tap <strong>Download Musify.apk</strong>. Once downloaded, tap
+                the notification or file in Downloads and choose{" "}
+                <strong>Install</strong>. If prompted, toggle &quot;Allow
+                installation from this source&quot;.
               </p>
             </div>
             <div>
               <p className="font-semibold text-white mb-1">Windows PC:</p>
               <p className="text-zinc-400">
-                Click <strong>Download Musify.exe</strong>. It is a completely portable standalone application; simply double-click <strong>Musify.exe</strong> to start listening immediately.
+                Click <strong>Download Musify.exe</strong>. It is a completely
+                portable standalone application; simply double-click{" "}
+                <strong>Musify.exe</strong> to start listening immediately.
               </p>
             </div>
           </div>
@@ -212,9 +234,11 @@ export default function DownloadPage() {
 
       {/* Footer */}
       <footer className="relative z-10 max-w-5xl mx-auto px-6 py-10 border-t border-white/[0.06] text-center text-xs text-zinc-500">
-        <p>&copy; {new Date().getFullYear()} Musify. Engineered for high-fidelity audio.</p>
+        <p>
+          &copy; {new Date().getFullYear()} Musify. Engineered for high-fidelity
+          audio.
+        </p>
       </footer>
     </div>
   );
 }
-

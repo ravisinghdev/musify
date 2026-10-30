@@ -1,277 +1,277 @@
-import React from "react";
+import {
+  type LucideIcon,
+  House,
+  Compass,
+  Search,
+  Clock3,
+  Heart,
+  List,
+  ChevronRight,
+  ChevronLeft,
+  ChevronDown,
+  ChevronUp,
+  Plus,
+  Minus,
+  Bell,
+  Play,
+  Pause,
+  SkipBack,
+  SkipForward,
+  Shuffle,
+  Repeat,
+  Repeat1,
+  Volume2,
+  Volume1,
+  VolumeX,
+  Mic,
+  MicVocal,
+  Sparkles,
+  ArrowUpRight,
+  Menu,
+  X,
+  Music2,
+  TrendingUp,
+  Maximize2,
+  Minimize2,
+  MoreHorizontal,
+  MoreVertical,
+  ListMusic,
+  Settings,
+  SlidersHorizontal,
+  UserRound,
+  Shield,
+  Palette,
+  Download,
+  Trash2,
+  Check,
+  CheckCircle,
+  ChevronRight as ArrowRight,
+  Globe,
+  Lock,
+  Eye,
+  EyeOff,
+  Languages,
+  Camera,
+  Pencil,
+  Disc3,
+  AudioWaveform,
+  AudioLines,
+  Headphones,
+  Radio,
+  RadioTower,
+  ListPlus,
+  Folder,
+  FolderPlus,
+  Bookmark,
+  Share2,
+  Users,
+  UserPlus,
+  MessageCircle,
+  ThumbsUp,
+  ThumbsDown,
+  Bot,
+  Brain,
+  WandSparkles,
+  Lightbulb,
+  Blend,
+  Orbit,
+  ChartNoAxesCombined,
+  Timer,
+  Sun,
+  Moon,
+  Monitor,
+  Smartphone,
+  Wifi,
+  WifiOff,
+  Bluetooth,
+  Battery,
+  Cloud,
+  CloudDownload,
+  HardDrive,
+  Keyboard,
+  Calendar,
+  Info,
+  CircleHelp,
+  AlertCircle,
+  AlertTriangle,
+  RefreshCw,
+  Grip,
+  GripVertical,
+  Save,
+  ExternalLink,
+  HeartHandshake,
+  Captions,
+} from "lucide-react";
+
+const iconRegistry = {
+  // Navigation
+  home: House,
+  explore: Compass,
+  search: Search,
+  library: List,
+  settings: Settings,
+  profile: UserRound,
+  menu: Menu,
+  close: X,
+  back: ArrowRight,
+  "chevron-right": ChevronRight,
+  "chevron-left": ChevronLeft,
+  "chevron-up": ChevronUp,
+  "chevron-down": ChevronDown,
+  plus: Plus,
+  minus: Minus,
+
+  // Playback
+  play: Play,
+  pause: Pause,
+  "skip-back": SkipBack,
+  "skip-forward": SkipForward,
+  shuffle: Shuffle,
+  repeat: Repeat,
+  "repeat-one": Repeat1,
+  volume: Volume2,
+  "volume-low": Volume1,
+  "volume-high": Volume2,
+  "volume-x": VolumeX,
+  headphones: Headphones,
+  music: Music2,
+  disc: Disc3,
+  waveform: AudioWaveform,
+  "audio-lines": AudioLines,
+  equalizer: SlidersHorizontal,
+  radio: Radio,
+
+  // Queue and player
+  queue: ListMusic,
+  playlist: ListMusic,
+  "playlist-plus": ListPlus,
+  "list-plus": ListPlus,
+  grip: Grip,
+  "grip-vertical": GripVertical,
+  "more-horizontal": MoreHorizontal,
+  "more-vertical": MoreVertical,
+  maximize: Maximize2,
+  minimize: Minimize2,
+
+  // Lyrics and discovery
+  lyrics: Captions,
+  mic: Mic,
+  "mic-vocal": MicVocal,
+  sparkles: Sparkles,
+  compass: Compass,
+  trending: TrendingUp,
+  "radio-tower": RadioTower,
+  "disc-3": Disc3,
+  bot: Bot,
+  brain: Brain,
+  wand: WandSparkles,
+  lightbulb: Lightbulb,
+  orbit: Orbit,
+  blend: Blend,
+
+  // Library
+  heart: Heart,
+  "heart-filled": Heart,
+  bookmark: Bookmark,
+  clock: Clock3,
+  history: Clock3,
+  folder: Folder,
+  "folder-plus": FolderPlus,
+  download: Download,
+  trash: Trash2,
+  save: Save,
+
+  // Social
+  user: UserRound,
+  users: Users,
+  "user-plus": UserPlus,
+  share: Share2,
+  message: MessageCircle,
+  "thumbs-up": ThumbsUp,
+  "thumbs-down": ThumbsDown,
+  "heart-handshake": HeartHandshake,
+
+  // Settings
+  sliders: SlidersHorizontal,
+  palette: Palette,
+  sun: Sun,
+  moon: Moon,
+  monitor: Monitor,
+  smartphone: Smartphone,
+  shield: Shield,
+  lock: Lock,
+  eye: Eye,
+  "eye-off": EyeOff,
+  globe: Globe,
+  languages: Languages,
+
+  // System
+  bell: Bell,
+  check: Check,
+  "check-circle": CheckCircle,
+  info: Info,
+  help: CircleHelp,
+  alert: AlertCircle,
+  warning: AlertTriangle,
+  refresh: RefreshCw,
+  wifi: Wifi,
+  "wifi-off": WifiOff,
+  bluetooth: Bluetooth,
+  battery: Battery,
+  cloud: Cloud,
+  "cloud-download": CloudDownload,
+  storage: HardDrive,
+  keyboard: Keyboard,
+  calendar: Calendar,
+  timer: Timer,
+  camera: Camera,
+  edit: Pencil,
+  "external-link": ExternalLink,
+  "arrow-up-right": ArrowUpRight,
+  chart: ChartNoAxesCombined,
+
+  // Common Aliases & Legacy Names
+  x: X,
+  list: List,
+  phone: Smartphone,
+  more: MoreHorizontal,
+  arrow: ArrowRight,
+  chevron: ChevronRight,
+} satisfies Record<string, LucideIcon>;
+
+export type IconName = keyof typeof iconRegistry | (string & {});
+
+interface IconProps {
+  name: string;
+  size?: number;
+  className?: string;
+  strokeWidth?: number;
+  color?: string;
+  fill?: string;
+  ariaLabel?: string;
+}
 
 export function Icon({
   name,
   size = 20,
   className = "",
-}: {
-  name: string;
-  size?: number;
-  className?: string;
-}) {
-  const paths: Record<string, React.ReactNode> = {
-    home: (
-      <>
-        <path d="m3 10 9-7 9 7" />
-        <path d="M5 9v11h14V9M9 20v-6h6v6" />
-      </>
-    ),
-    compass: (
-      <>
-        <circle cx="12" cy="12" r="9" />
-        <path d="m15.5 8.5-2 5-5 2 2-5z" />
-      </>
-    ),
-    search: (
-      <>
-        <circle cx="10.5" cy="10.5" r="6.5" />
-        <path d="m16 16 5 5" />
-      </>
-    ),
-    clock: (
-      <>
-        <circle cx="12" cy="12" r="9" />
-        <path d="M12 7v5l3 2" />
-      </>
-    ),
-    heart: (
-      <path d="M20.8 8.8c0 5.2-8.8 10.2-8.8 10.2S3.2 14 3.2 8.8A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.6Z" />
-    ),
-    "heart-filled": (
-      <path
-        d="M20.8 8.8c0 5.2-8.8 10.2-8.8 10.2S3.2 14 3.2 8.8A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.6Z"
-        fill="currentColor"
-        stroke="none"
-      />
-    ),
-    list: (
-      <>
-        <path d="M9 6h11M9 12h11M9 18h11" />
-        <path d="M4 6h.01M4 12h.01M4 18h.01" />
-      </>
-    ),
-    chevron: <path d="m9 18 6-6-6-6" />,
-    plus: <path d="M12 5v14M5 12h14" />,
-    bell: (
-      <>
-        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
-        <path d="M10 21h4" />
-      </>
-    ),
-    play: <path d="m8 5 12 7-12 7z" fill="currentColor" stroke="none" />,
-    pause: (
-      <>
-        <rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor" stroke="none" />
-        <rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor" stroke="none" />
-      </>
-    ),
-    "skip-back": (
-      <>
-        <path d="m19 20-9-8 9-8v16z" fill="currentColor" stroke="none" />
-        <rect x="5" y="4" width="2" height="16" rx="1" fill="currentColor" stroke="none" />
-      </>
-    ),
-    "skip-forward": (
-      <>
-        <path d="m5 4 9 8-9 8V4z" fill="currentColor" stroke="none" />
-        <rect x="17" y="4" width="2" height="16" rx="1" fill="currentColor" stroke="none" />
-      </>
-    ),
-    shuffle: (
-      <>
-        <path d="M16 3h5v5M4 20l17-17M21 16v5h-5M15 15l6 6M4 4l5 5" />
-      </>
-    ),
-    repeat: (
-      <>
-        <path d="m17 1 4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3" />
-      </>
-    ),
-    volume: (
-      <>
-        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-        <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-        <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-      </>
-    ),
-    "volume-x": (
-      <>
-        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-        <line x1="22" y1="9" x2="16" y2="15" />
-        <line x1="16" y1="9" x2="22" y2="15" />
-      </>
-    ),
-    mic: (
-      <>
-        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-        <line x1="12" y1="19" x2="12" y2="22" />
-      </>
-    ),
-    sparkles: (
-      <>
-        <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z" />
-      </>
-    ),
-    arrow: (
-      <>
-        <path d="M7 17 17 7M7 7h10v10" />
-      </>
-    ),
-    menu: (
-      <>
-        <path d="M4 7h16M4 12h16M4 17h16" />
-      </>
-    ),
-    close: (
-      <>
-        <path d="M18 6 6 18M6 6l12 12" />
-      </>
-    ),
-    music: (
-      <>
-        <path d="M9 18V5l12-2v13" />
-        <circle cx="6" cy="18" r="3" />
-        <circle cx="18" cy="16" r="3" />
-      </>
-    ),
-    trending: (
-      <>
-        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-        <polyline points="17 6 23 6 23 12" />
-      </>
-    ),
-    maximize: (
-      <>
-        <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
-      </>
-    ),
-    more: (
-      <>
-        <circle cx="12" cy="12" r="1" fill="currentColor" />
-        <circle cx="19" cy="12" r="1" fill="currentColor" />
-        <circle cx="5" cy="12" r="1" fill="currentColor" />
-      </>
-    ),
-    queue: (
-      <>
-        <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
-      </>
-    ),
-    settings: (
-      <>
-        <circle cx="12" cy="12" r="3" />
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-      </>
-    ),
-    sliders: (
-      <>
-        <line x1="4" y1="21" x2="4" y2="14" />
-        <line x1="4" y1="10" x2="4" y2="3" />
-        <line x1="12" y1="21" x2="12" y2="12" />
-        <line x1="12" y1="8" x2="12" y2="3" />
-        <line x1="20" y1="21" x2="20" y2="16" />
-        <line x1="20" y1="12" x2="20" y2="3" />
-        <line x1="1" y1="14" x2="7" y2="14" />
-        <line x1="9" y1="8" x2="15" y2="8" />
-        <line x1="17" y1="16" x2="23" y2="16" />
-      </>
-    ),
-    user: (
-      <>
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-        <circle cx="12" cy="7" r="4" />
-      </>
-    ),
-    shield: (
-      <>
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      </>
-    ),
-    palette: (
-      <>
-        <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" />
-        <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" />
-        <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" />
-        <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" />
-        <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.992 6.012 17.48 2 12 2z" />
-      </>
-    ),
-    download: (
-      <>
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-        <polyline points="7 10 12 15 17 10" />
-        <line x1="12" y1="15" x2="12" y2="3" />
-      </>
-    ),
-    trash: (
-      <>
-        <polyline points="3 6 5 6 21 6" />
-        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-      </>
-    ),
-    check: (
-      <>
-        <polyline points="20 6 9 17 4 12" />
-      </>
-    ),
-    "chevron-left": (
-      <>
-        <polyline points="15 18 9 12 15 6" />
-      </>
-    ),
-    "chevron-right": (
-      <>
-        <polyline points="9 18 15 12 9 6" />
-      </>
-    ),
-    edit: (
-      <>
-        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-      </>
-    ),
-    camera: (
-      <>
-        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-        <circle cx="12" cy="13" r="4" />
-      </>
-    ),
-    globe: (
-      <>
-        <circle cx="12" cy="12" r="10" />
-        <line x1="2" y1="12" x2="22" y2="12" />
-        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-      </>
-    ),
-    lock: (
-      <>
-        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-      </>
-    ),
-    eye: (
-      <>
-        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-        <circle cx="12" cy="12" r="3" />
-      </>
-    ),
-  };
+  strokeWidth = 1.8,
+  color = "currentColor",
+  fill,
+  ariaLabel,
+}: IconProps) {
+  const IconComponent = (iconRegistry as Record<string, LucideIcon>)[name] || Music2;
 
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
+    <IconComponent
+      size={size}
+      strokeWidth={strokeWidth}
+      color={color}
+      fill={fill ?? (name === "heart-filled" ? "currentColor" : "none")}
       className={`shrink-0 ${className}`}
-    >
-      {paths[name] ?? paths.home}
-    </svg>
+      aria-label={ariaLabel}
+      aria-hidden={ariaLabel ? undefined : true}
+      role={ariaLabel ? "img" : undefined}
+    />
   );
 }

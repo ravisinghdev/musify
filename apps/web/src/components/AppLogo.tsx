@@ -36,19 +36,16 @@ export function AppLogo({
         onClick ? "cursor-pointer" : ""
       } ${className}`}
     >
-      {/* 3D Glassmorphic Emblem */}
+      {/* Real Musify Brand Logo */}
       <div
-        className={`relative shrink-0 overflow-hidden ${iconDimensions.class}`}
+        className={`relative shrink-0 overflow-hidden ${iconDimensions.class} shadow-md shadow-purple-500/10`}
       >
         <img
-          src="/icon-192.png"
+          src="/musify_logo.png"
           alt="Musify Logo"
           width={iconDimensions.px}
           height={iconDimensions.px}
           className="h-full w-full object-contain"
-          onError={(e) => {
-            (e.currentTarget as HTMLImageElement).src = "/musify_logo.png";
-          }}
         />
       </div>
 

@@ -6,12 +6,12 @@ import { AudioPlayer } from "../components/AudioPlayer";
 import { AuthModal } from "../components/AuthModal";
 import { CreatePlaylistModal } from "../components/CreatePlaylistModal";
 import { FullscreenVisualizer } from "../components/FullscreenVisualizer";
-import { HeroBanner } from "../components/HeroBanner";
 import { Icon } from "../components/Icons";
 import { LyricsModal } from "../components/LyricsModal";
 import { MediaCard } from "../components/MediaCard";
 import { MediaSection } from "../components/MediaSection";
 import { MobileNavDrawer } from "../components/MobileNavDrawer";
+import { MobileBottomNav } from "../components/MobileBottomNav";
 import { NowPlayingPanel } from "../components/NowPlayingPanel";
 import {
   ActivePlaylistView,
@@ -27,11 +27,14 @@ import { UserProfileModal } from "../components/UserProfileModal";
 import { SettingsView } from "../components/SettingsView";
 import { ArtistDetailView } from "../components/ArtistDetailView";
 import { AlbumDetailView } from "../components/AlbumDetailView";
+import { AIHubView } from "../components/AIHubView";
 import { ListeningStatsView } from "../components/ListeningStatsView";
 import { ImportPlaylistModal } from "../components/ImportPlaylistModal";
 import { OfflineLibraryView } from "../components/OfflineLibraryView";
 import { ListeningRoomModal } from "../components/ListeningRoomModal";
 import { YouTubeAudioEngine } from "../components/YouTubeAudioEngine";
+import { TrackActionSheet } from "../components/TrackActionSheet";
+import { haptics } from "../lib/haptics";
 import { api } from "../lib/api";
 import { notificationsApi, type AppNotification } from "../lib/notifications";
 import { offlineStore } from "../lib/offlineStore";
@@ -94,7 +97,7 @@ const VIBE_STATIONS = [
 ];
 
 export default function Home() {
-  const { settings } = useSettings();
+  const { settings, updateSettings } = useSettings();
   const [active, setActive] = useState<string>("Home");
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -175,6 +178,7 @@ export default function Home() {
   const [selectedAlbum, setSelectedAlbum] = useState<{ id: string; title?: string; artworkUrl?: string; artistName?: string } | null>(null);
   const [showImportModal, setShowImportModal] = useState(false);
   const [activeFilterChip, setActiveFilterChip] = useState<string>("All");
+  const [selectedContextTrack, setSelectedContextTrack] = useState<Track | null>(null);
 
   // Listen Together & Offline Downloads State
   const [showListeningRoomModal, setShowListeningRoomModal] = useState(false);
@@ -367,6 +371,19 @@ export default function Home() {
     };
   }, [currentTrack?.id, aiMood, settings.aiPersona]);
 
+  // Restore volume & playback preferences on mount
+  useEffect(() => {
+    if (settings.rememberVolume && typeof settings.savedVolume === "number") {
+      setVolume(settings.savedVolume);
+    }
+    if (settings.defaultShuffle) {
+      setIsShuffle(true);
+    }
+    if (settings.defaultRepeat) {
+      setIsRepeat(true);
+    }
+  }, []);
+
   // Deep-link query tab navigation (?tab=Settings, ?tab=Explore, etc.)
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -374,9 +391,11 @@ export default function Home() {
       const tab = params.get("tab");
       if (tab) {
         setActive(tab);
+      } else if (settings.landingPage && active === "Home") {
+        setActive(settings.landingPage);
       }
     }
-  }, []);
+  }, [settings.landingPage]);
 
   const handleMoodChange = useCallback(
     async (mood: string) => {
@@ -446,12 +465,25 @@ export default function Home() {
     [showToast],
   );
 
+  const handlePlayNext = useCallback((track: Track) => {
+    setQueue((prev) => {
+      const nextIdx = queueIndexRef.current + 1;
+      const updated = [...prev];
+      updated.splice(nextIdx, 0, track);
+      queueRef.current = updated;
+      return updated;
+    });
+    haptics.success();
+    showToast("Playing Next", track.title, "success");
+  }, [showToast]);
+
   const handleAddTrackToQueue = useCallback((track: Track) => {
     setQueue((prev) => {
       const updated = [...prev, track];
       queueRef.current = updated;
       return updated;
     });
+    haptics.success();
     setAiQueueSuggestions((prev) => prev.filter((item) => item.track.id !== track.id));
     showToast("Added to Queue", track.title, "success");
   }, [showToast]);
@@ -765,8 +797,10 @@ export default function Home() {
       setIsPlaying(true);
       setLyrics(null);
 
-      // Persist to recently played history
-      store.addRecentlyPlayed(resolvedTrack).then(setRecentlyPlayed);
+      // Persist to recently played history (unless in private session)
+      if (!settings.privateSession) {
+        store.addRecentlyPlayed(resolvedTrack).then(setRecentlyPlayed);
+      }
 
       // Manage Queue with strict sequential order and deterministic sync
       if (newQueue && newQueue.length > 0) {
@@ -910,6 +944,13 @@ export default function Home() {
   // Toggle Repeat/Loop
   const handleToggleRepeat = useCallback(() => {
     setIsRepeat((prev) => !prev);
+  }, []);
+
+  // Close / Dismiss Player Dock & Stop Playback
+  const handleClosePlayer = useCallback(() => {
+    setIsPlaying(false);
+    setCurrentTrack(null);
+    setPlaybackUrl(null);
   }, []);
 
   // Global Hotkeys for instant zero-latency playback control
@@ -1311,22 +1352,24 @@ export default function Home() {
     return Array.from(artistMap.values()).slice(0, 8);
   }, [trendingTracks, quickPicksTracks]);
 
-  return (
-    <main className="relative h-screen w-screen overflow-hidden bg-[#07090e] text-zinc-100 selection:bg-white/20 flex flex-col font-sans">
-      {/* Dynamic Canvas Ambient Blooms */}
-      {settings.ambientGlow && (
-        <>
-          <div
-            className="pointer-events-none fixed -top-40 -left-40 h-[600px] w-[600px] rounded-full blur-[140px] transition-all duration-1000"
-            style={{ background: artworkTheme.glowRgba }}
-          />
-          <div
-            className="pointer-events-none fixed top-1/3 -right-40 h-[520px] w-[520px] rounded-full blur-[140px] transition-all duration-1000"
-            style={{ background: artworkTheme.glowRgba }}
-          />
-        </>
-      )}
+  const themeBgClass = useMemo(() => {
+    switch (settings.theme) {
+      case "oled":
+        return "bg-black";
+      case "midnight":
+        return "bg-[#040812]";
+      case "emerald":
+        return "bg-[#04100b]";
+      case "amber":
+        return "bg-[#100803]";
+      case "dark":
+      default:
+        return "bg-[#07090e]";
+    }
+  }, [settings.theme]);
 
+  return (
+    <main className={`relative h-screen w-screen overflow-hidden ${themeBgClass} text-zinc-100 selection:bg-white/20 flex flex-col font-sans ${settings.reduceMotion ? "motion-reduce" : ""}`}>
       {/* Invisible YouTube Audio Engine (Zero 403 Errors, Full Sound Out of Speakers) */}
       <YouTubeAudioEngine
         currentTrack={currentTrack}
@@ -1347,7 +1390,13 @@ export default function Home() {
         onPrev={handlePrevTrack}
       />
 
-      <div className="flex flex-1 min-h-0 w-full max-w-[1920px] mx-auto overflow-hidden pb-[110px] sm:pb-[96px]">
+      <div
+        className={`flex flex-1 min-h-0 w-full max-w-[1920px] mx-auto overflow-hidden transition-all duration-300 ${
+          currentTrack && isPlaying
+            ? "pb-[118px] sm:pb-[96px]"
+            : "pb-[54px] lg:pb-0"
+        }`}
+      >
         {/* Modular Left Desktop Sidebar */}
         <Sidebar
           activeNav={active}
@@ -1418,125 +1467,183 @@ export default function Home() {
             searchInputRef={searchInputRef}
           />
 
-          {/* VIEW: Search Results */}
-          {debouncedQuery ? (
-            <div className="py-8 space-y-6 animate-fade-in">
-              <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <p className="text-[11px] sm:text-xs uppercase tracking-[2px] text-zinc-500 font-semibold">
-                    SEARCH RESULTS
-                  </p>
-                  <h1 className="mt-0.5 sm:mt-1 text-lg sm:text-2xl font-bold text-white truncate">
-                    Results for &ldquo;{debouncedQuery}&rdquo;
-                  </h1>
-                </div>
-                {isSearching && (
-                  <div className="flex items-center gap-2 text-xs text-zinc-400 shrink-0">
-                    <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-indigo-400 border-t-transparent" />
-                    <span className="hidden xs:inline">Searching...</span>
-                  </div>
-                )}
-              </div>
-
-              {searchResults.length > 0 ? (
-                <div className="space-y-1">
-                  {searchResults.map((track, idx) => (
-                    <TrackRow
-                      key={`${track.id}-${idx}`}
-                      track={track}
-                      index={idx}
-                      compact={settings.compactMode}
-                      isCurrent={currentTrack?.id === track.id}
-                      isLiked={favoritesIds.has(track.id)}
-                      isDownloaded={downloadedIds.has(track.id)}
-                      onPlay={(t) => handlePlayTrack(t, searchResults, idx)}
-                      onToggleLike={(t) => handleToggleLike(t)}
-                      onAddToPlaylist={(t) => setPlaylistToAddTo(t)}
-                      onDownload={handleDownloadTrack}
-                      onSelectArtist={handleSelectArtist}
-                      onSelectAlbum={handleSelectAlbum}
-                    />
-                  ))}
-                </div>
-              ) : !isSearching ? (
-                <div className="flex min-h-[300px] flex-col items-center justify-center text-center">
-                  <Icon
-                    name="search"
-                    size={32}
-                    className="text-zinc-600 mb-3"
+          {/* VIEW: Search Tab with Dedicated Floating Pill Search Bar */}
+          {active === "Search" && (
+            <div className="py-6 space-y-6 animate-fade-in max-w-4xl mx-auto">
+              {/* Floating Pill Search Bar */}
+              <div className="relative w-full max-w-2xl mx-auto">
+                <label className="flex w-full items-center gap-3.5 rounded-full border border-white/20 bg-white/[0.06] backdrop-blur-2xl px-5 py-3.5 shadow-[0_10px_35px_rgba(0,0,0,0.5)] focus-within:border-purple-500/60 focus-within:bg-white/[0.09] transition-all">
+                  <Icon name="search" size={19} className="text-zinc-400 shrink-0" />
+                  <input
+                    ref={searchInputRef}
+                    value={query}
+                    autoFocus
+                    onChange={(e) => {
+                      setQuery(e.target.value);
+                      setShowSuggestions(Boolean(e.target.value));
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Escape") {
+                        setShowSuggestions(false);
+                      }
+                    }}
+                    placeholder="Search songs, artists, albums, or playlists..."
+                    className="w-full min-w-0 bg-transparent text-sm sm:text-base text-white outline-none placeholder:text-zinc-500 font-medium"
                   />
-                  <p className="text-base font-medium text-zinc-300">
-                    No results found
-                  </p>
-                  <p className="text-xs text-zinc-500 mt-1">
-                    Try searching for another artist, song, or album.
-                  </p>
-                </div>
-              ) : null}
-            </div>
-          ) : null}
+                  {query && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setQuery("");
+                        setSearchResults([]);
+                        setShowSuggestions(false);
+                      }}
+                      className="flex h-7 w-7 items-center justify-center text-xs text-zinc-400 hover:text-white transition rounded-full hover:bg-white/10 active:scale-90"
+                    >
+                      <Icon name="close" size={15} />
+                    </button>
+                  )}
+                </label>
 
-          {/* VIEW: Search Tab Landing */}
-          {active === "Search" && !debouncedQuery && (
-            <div className="py-8 space-y-9 animate-fade-in">
-              {recommendations &&
-                recommendations.trendingQueries.length > 0 && (
-                  <section>
-                    <div className="mb-3.5 flex items-center gap-2">
-                      <Icon
-                        name="trending"
-                        size={15}
-                        className="text-zinc-400"
-                      />
-                      <h2 className="text-xs font-semibold uppercase tracking-[1.5px] text-zinc-400">
-                        Trending Searches
-                      </h2>
+                {/* Autocomplete Suggestions Dropdown */}
+                {showSuggestions && suggestions.length > 0 && (
+                  <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-white/15 bg-[#0a0d16]/95 p-2 shadow-[0_20px_50px_rgba(0,0,0,0.95)] backdrop-blur-3xl animate-fade-in max-h-80 overflow-y-auto custom-scrollbar">
+                    <div className="px-3 py-1.5 text-[10px] font-semibold text-zinc-500 uppercase tracking-wider flex items-center justify-between border-b border-white/5 mb-1">
+                      <span>Instant Suggestions</span>
+                      <span className="text-[9px] text-zinc-600">Press Esc to dismiss</span>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      {recommendations.trendingQueries.map((item) => (
-                        <button
-                          key={item}
-                          onClick={() => handleSelectQuery(item)}
-                          className="rounded-full border border-white/[0.08] bg-white/[0.035] px-3.5 py-1.5 text-xs font-medium text-zinc-300 transition hover:border-white/20 hover:bg-white/[0.08] hover:text-white"
-                        >
-                          {item}
-                        </button>
-                      ))}
-                    </div>
-                  </section>
-                )}
-
-              {/* Browse Genres & Moods */}
-              {recommendations && recommendations.categories.length > 0 && (
-                <section>
-                  <div className="mb-3.5 flex items-center gap-2">
-                    <Icon name="compass" size={15} className="text-zinc-400" />
-                    <h2 className="text-xs font-semibold uppercase tracking-[1.5px] text-zinc-400">
-                      Browse Genres & Moods
-                    </h2>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
-                    {recommendations.categories.map((cat) => (
+                    {suggestions.map((item) => (
                       <button
-                        key={cat.id}
-                        onClick={() => handleSelectQuery(cat.query)}
-                        style={{ backgroundColor: `${cat.color}15` }}
-                        className="group relative flex h-24 flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.07] p-3.5 text-left transition hover:scale-[1.02] hover:border-white/25 shadow-lg backdrop-blur-md"
+                        key={item}
+                        onClick={() => {
+                          handleSelectQuery(item);
+                          setShowSuggestions(false);
+                        }}
+                        className="group flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-zinc-200 transition hover:bg-white/10 hover:text-white active:scale-[0.99]"
                       >
-                        <div
-                          className="absolute -right-3 -bottom-3 h-16 w-16 rounded-full blur-xl opacity-60 transition group-hover:opacity-100"
-                          style={{ backgroundColor: cat.color }}
-                        />
-                        <span className="text-sm font-bold text-white z-10">
-                          {cat.name}
-                        </span>
-                        <span className="text-[10px] text-zinc-400 z-10">
-                          Explore &rarr;
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-400 group-hover:bg-purple-500/20 group-hover:text-purple-300 transition shrink-0">
+                            <Icon name="search" size={14} />
+                          </div>
+                          <span className="truncate">{item}</span>
+                        </div>
+                        <span className="text-[10px] text-zinc-500 opacity-0 group-hover:opacity-100 transition shrink-0">
+                          Search ↵
                         </span>
                       </button>
                     ))}
                   </div>
-                </section>
+                )}
+              </div>
+
+              {/* Search Results (when searching) */}
+              {debouncedQuery ? (
+                <div className="space-y-4 pt-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11px] sm:text-xs uppercase tracking-[2px] text-zinc-500 font-semibold">
+                        SEARCH RESULTS
+                      </p>
+                      <h1 className="mt-0.5 sm:mt-1 text-lg sm:text-2xl font-bold text-white truncate">
+                        Results for &ldquo;{debouncedQuery}&rdquo;
+                      </h1>
+                    </div>
+                    {isSearching && (
+                      <div className="flex items-center gap-2 text-xs text-zinc-400 shrink-0">
+                        <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-purple-400 border-t-transparent" />
+                        <span className="hidden xs:inline">Searching...</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {searchResults.length > 0 ? (
+                    <div className="space-y-1">
+                      {searchResults.map((track, idx) => (
+                        <TrackRow
+                          key={`${track.id}-${idx}`}
+                          track={track}
+                          index={idx}
+                          compact={settings.compactMode}
+                          isCurrent={currentTrack?.id === track.id}
+                          isLiked={favoritesIds.has(track.id)}
+                          isDownloaded={downloadedIds.has(track.id)}
+                          onPlay={(t) => handlePlayTrack(t, searchResults, idx)}
+                          onToggleLike={(t) => handleToggleLike(t)}
+                          onAddToPlaylist={(t) => setPlaylistToAddTo(t)}
+                          onDownload={handleDownloadTrack}
+                          onSelectArtist={handleSelectArtist}
+                          onSelectAlbum={handleSelectAlbum}
+                        />
+                      ))}
+                    </div>
+                  ) : !isSearching ? (
+                    <div className="flex min-h-[260px] flex-col items-center justify-center text-center">
+                      <Icon name="search" size={32} className="text-zinc-600 mb-3" />
+                      <p className="text-base font-medium text-zinc-300">No results found</p>
+                      <p className="text-xs text-zinc-500 mt-1">
+                        Try searching for another artist, song, or album.
+                      </p>
+                    </div>
+                  ) : null}
+                </div>
+              ) : (
+                /* Search Landing: Trending & Categories */
+                <div className="space-y-8 pt-2">
+                  {recommendations && recommendations.trendingQueries.length > 0 && (
+                    <section>
+                      <div className="mb-3.5 flex items-center gap-2">
+                        <Icon name="trending" size={15} className="text-zinc-400" />
+                        <h2 className="text-xs font-semibold uppercase tracking-[1.5px] text-zinc-400">
+                          Trending Searches
+                        </h2>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {recommendations.trendingQueries.map((item) => (
+                          <button
+                            key={item}
+                            onClick={() => handleSelectQuery(item)}
+                            className="rounded-full border border-white/[0.08] bg-white/[0.035] px-4 py-2 text-xs font-medium text-zinc-300 transition hover:border-purple-500/30 hover:bg-purple-500/10 hover:text-white"
+                          >
+                            {item}
+                          </button>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                  {/* Browse Genres & Moods */}
+                  {recommendations && recommendations.categories.length > 0 && (
+                    <section>
+                      <div className="mb-3.5 flex items-center gap-2">
+                        <Icon name="compass" size={15} className="text-zinc-400" />
+                        <h2 className="text-xs font-semibold uppercase tracking-[1.5px] text-zinc-400">
+                          Browse Genres & Moods
+                        </h2>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+                        {recommendations.categories.map((cat) => (
+                          <button
+                            key={cat.id}
+                            onClick={() => handleSelectQuery(cat.query)}
+                            style={{ backgroundColor: `${cat.color}15` }}
+                            className="group relative flex h-24 flex-col justify-between overflow-hidden rounded-2xl border border-white/[0.07] p-3.5 text-left transition hover:scale-[1.02] hover:border-white/25 shadow-lg backdrop-blur-md"
+                          >
+                            <div
+                              className="absolute -right-3 -bottom-3 h-16 w-16 rounded-full blur-xl opacity-60 transition group-hover:opacity-100"
+                              style={{ backgroundColor: cat.color }}
+                            />
+                            <span className="text-sm font-bold text-white z-10">
+                              {cat.name}
+                            </span>
+                            <span className="text-[10px] text-zinc-400 z-10">
+                              Explore &rarr;
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+                </div>
               )}
             </div>
           )}
@@ -1751,6 +1858,25 @@ export default function Home() {
             </div>
           )}
 
+          {/* VIEW: AI Hub & Gemini Music Studio */}
+          {active === "AI Hub" && (
+            <div className="py-6 animate-fade-in">
+              <AIHubView
+                currentTrack={currentTrack}
+                isPlaying={isPlaying}
+                activeMood={aiMood}
+                onMoodChange={handleMoodChange}
+                aiSuggestions={aiQueueSuggestions}
+                isLoadingAISuggestions={isLoadingAISuggestions}
+                onPlayTrack={(t) => handlePlayTrack(t)}
+                onAddTrackToQueue={handleAddTrackToQueue}
+                onAddAllAIToQueue={handleAddAllAIToQueue}
+                onGeneratePlaylist={handleGenerateAIPlaylist}
+                onOpenVisualizer={() => setShowFullscreenVisualizer(true)}
+              />
+            </div>
+          )}
+
           {/* VIEW: Dedicated Settings Studio Page */}
           {active === "Settings" && (
             <SettingsView
@@ -1886,17 +2012,15 @@ export default function Home() {
                 ))}
               </div>
 
-              {/* Dynamic Daylist Card */}
-              <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-6 sm:p-7 backdrop-blur-2xl shadow-xl group">
-                <div className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 blur-[80px]" />
-
+              {/* Dynamic Daylist Banner */}
+              <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#0d0f17] p-5 sm:p-7 shadow-xl group">
                 <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2">
-                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30">
                         <Icon name="sparkles" size={11} />
                       </span>
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-400">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-purple-400">
                         {daylistVibe.badge}
                       </span>
                     </div>
@@ -1909,7 +2033,7 @@ export default function Home() {
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-3 shrink-0">
+                  <div className="flex items-center gap-2.5 shrink-0">
                     <button
                       onClick={() => {
                         if (quickPicksTracks.length > 0) {
@@ -1918,33 +2042,22 @@ export default function Home() {
                           handlePlayTrack(trendingTracks[0], trendingTracks, 0);
                         }
                       }}
-                      className="flex items-center gap-2 rounded-full bg-white px-6 py-2.5 text-xs font-bold text-zinc-950 hover:bg-zinc-200 transition active:scale-95 shadow-lg shadow-white/10"
+                      className="flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-xs font-bold text-zinc-950 hover:bg-zinc-200 transition active:scale-95 shadow-md"
                     >
-                      <Icon name="play" size={14} />
+                      <Icon name="play" size={13} />
                       <span>Play Daylist</span>
+                    </button>
+
+                    <button
+                      onClick={() => setActive("AI Hub")}
+                      className="flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/10 transition active:scale-95"
+                    >
+                      <Icon name="sparkles" size={13} className="text-purple-400" />
+                      <span>AI Hub</span>
                     </button>
                   </div>
                 </div>
               </div>
-
-              {/* Modular Hero Banner Card */}
-              <HeroBanner
-                greeting={greeting}
-                title="Music for a better you."
-                subtitle="Discover new sounds, rediscover old favorites, and let the music take you further."
-                currentTrack={currentTrack}
-                isPlaying={isPlaying}
-                onOpenAI={() => setShowCreatePlaylistModal(true)}
-                onPlayHero={() => {
-                  if (currentTrack) {
-                    togglePlay();
-                  } else if (trendingTracks.length > 0) {
-                    handlePlayTrack(trendingTracks[0], trendingTracks, 0);
-                  } else if (quickPicksTracks.length > 0) {
-                    handlePlayTrack(quickPicksTracks[0], quickPicksTracks, 0);
-                  }
-                }}
-              />
 
               {/* Quick Picks / Jump Back In */}
               {quickPicksTracks.length > 0 && (
@@ -1961,20 +2074,28 @@ export default function Home() {
                       </h2>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
                     {quickPicksTracks.map((t, idx) => {
                       const isCur = currentTrack?.id === t.id;
                       return (
                         <div
                           key={`${t.id}-${idx}`}
-                          onClick={() => handlePlayTrack(t, quickPicksTracks, idx)}
-                          className={`group relative flex items-center gap-3 rounded-2xl border border-white/[0.06] bg-[#0c0e15]/70 p-2.5 transition-all duration-200 hover:border-white/20 hover:bg-[#131622] hover:shadow-lg cursor-pointer select-none ${
+                          onClick={() => {
+                            haptics.light();
+                            handlePlayTrack(t, quickPicksTracks, idx);
+                          }}
+                          onContextMenu={(e) => {
+                            e.preventDefault();
+                            haptics.heavy();
+                            setSelectedContextTrack(t);
+                          }}
+                          className={`group relative flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-[#0d1018]/85 p-2.5 sm:p-3 transition-all duration-200 hover:border-white/20 hover:bg-[#141824] hover:shadow-lg active:scale-[0.98] cursor-pointer select-none touch-pan-y ${
                             isCur
-                              ? "border-indigo-500/40 bg-indigo-500/10 shadow-indigo-500/10 shadow-lg"
+                              ? "border-indigo-500/50 bg-indigo-500/15 shadow-indigo-500/10 shadow-lg"
                               : ""
                           }`}
                         >
-                          <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-zinc-800">
+                          <div className="relative h-12 w-12 sm:h-13 sm:w-13 shrink-0 overflow-hidden rounded-xl bg-zinc-800 shadow-sm">
                             {t.artworkUrl || t.sourceTrackId ? (
                               // eslint-disable-next-line @next/next/no-img-element
                               <img
@@ -1996,7 +2117,7 @@ export default function Home() {
                               </div>
                             )}
                             {isCur && isPlaying && (
-                              <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[1px]">
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/45 backdrop-blur-[1px]">
                                 <div className="flex items-end gap-[2px] h-3.5">
                                   <span className="w-[2px] bg-white rounded-full equalizer-bar-1" />
                                   <span className="w-[2px] bg-white rounded-full equalizer-bar-2" />
@@ -2005,15 +2126,16 @@ export default function Home() {
                               </div>
                             )}
                           </div>
-                          <div className="min-w-0 flex-1">
+                          <div className="min-w-0 flex-1 pr-1">
                             <p
                               className={`truncate text-xs sm:text-sm font-semibold tracking-tight ${
-                                isCur ? "text-indigo-300" : "text-white"
+                                isCur ? "text-indigo-300 font-bold" : "text-white"
                               }`}
+                              title={t.title}
                             >
                               {t.title}
                             </p>
-                            <p className="truncate text-[11px] text-zinc-400 mt-0.5">
+                            <p className="truncate text-[11px] sm:text-xs text-zinc-400 mt-0.5" title={t.artists.map((a) => a.name).join(", ")}>
                               {t.artists.map((a) => a.name).join(", ")}
                             </p>
                           </div>
@@ -2043,56 +2165,58 @@ export default function Home() {
               )}
 
               {/* Recommended for you Section (Featured Playlists) */}
-              <MediaSection
-                title="Recommended for you"
-                actionText="See all"
-                onAction={() => setActive("Explore")}
-                layout="carousel"
-              >
-                {/* Dynamically render API playlists, fallback to custom playlists */}
-                {recommendations &&
-                recommendations.featuredPlaylists &&
-                recommendations.featuredPlaylists.length > 0
-                  ? recommendations.featuredPlaylists.map((pl, idx) => (
-                      <MediaCard
-                        key={`${pl.id}-${idx}`}
-                        id={pl.id}
-                        title={pl.title}
-                        subtitle={pl.description || "Curated Playlist"}
-                        artworkUrl={pl.artworkUrl}
-                        badge={`Playlist • ${pl.tracksCount || 50} tracks`}
-                        onClick={() => openPlaylist(pl)}
-                        onPlay={() => handlePlayPlaylist(pl)}
-                      />
-                    ))
-                  : customPlaylists.length > 0
-                  ? customPlaylists
-                      .slice(0, 6)
-                      .map((pl, idx) => (
+              {settings.showRecommendations !== false && (
+                <MediaSection
+                  title="Recommended for you"
+                  actionText="See all"
+                  onAction={() => setActive("Explore")}
+                  layout="carousel"
+                >
+                  {/* Dynamically render API playlists, fallback to custom playlists */}
+                  {recommendations &&
+                  recommendations.featuredPlaylists &&
+                  recommendations.featuredPlaylists.length > 0
+                    ? recommendations.featuredPlaylists.map((pl, idx) => (
                         <MediaCard
                           key={`${pl.id}-${idx}`}
                           id={pl.id}
-                          title={pl.name}
-                          subtitle={pl.description}
-                          artworkUrl={pl.artwork}
-                          badge={`Playlist • ${pl.tracks.length} tracks`}
+                          title={pl.title}
+                          subtitle={pl.description || "Curated Playlist"}
+                          artworkUrl={pl.artworkUrl}
+                          badge={`Playlist • ${pl.tracksCount || 50} tracks`}
                           onClick={() => openPlaylist(pl)}
                           onPlay={() => handlePlayPlaylist(pl)}
                         />
                       ))
-                  : [1, 2, 3, 4].map((i) => (
-                      <div
-                        key={i}
-                        className="flex-shrink-0 w-44 h-56 rounded-2xl bg-white/[0.03] border border-white/[0.05] p-3 animate-pulse flex flex-col justify-between"
-                      >
-                        <div className="w-full aspect-square rounded-xl bg-white/[0.05]" />
-                        <div className="space-y-2 pt-2">
-                          <div className="h-3 w-3/4 bg-white/[0.08] rounded" />
-                          <div className="h-2 w-1/2 bg-white/[0.05] rounded" />
+                    : customPlaylists.length > 0
+                    ? customPlaylists
+                        .slice(0, 6)
+                        .map((pl, idx) => (
+                          <MediaCard
+                            key={`${pl.id}-${idx}`}
+                            id={pl.id}
+                            title={pl.name}
+                            subtitle={pl.description}
+                            artworkUrl={pl.artwork}
+                            badge={`Playlist • ${pl.tracks.length} tracks`}
+                            onClick={() => openPlaylist(pl)}
+                            onPlay={() => handlePlayPlaylist(pl)}
+                          />
+                        ))
+                    : [1, 2, 3, 4].map((i) => (
+                        <div
+                          key={i}
+                          className="flex-shrink-0 w-44 h-56 rounded-2xl bg-white/[0.03] border border-white/[0.05] p-3 animate-pulse flex flex-col justify-between"
+                        >
+                          <div className="w-full aspect-square rounded-xl bg-white/[0.05]" />
+                          <div className="space-y-2 pt-2">
+                            <div className="h-3 w-3/4 bg-white/[0.08] rounded" />
+                            <div className="h-2 w-1/2 bg-white/[0.05] rounded" />
+                          </div>
                         </div>
-                      </div>
-                    ))}
-              </MediaSection>
+                      ))}
+                </MediaSection>
+              )}
 
               {/* Trending Worldwide Section */}
               <MediaSection
@@ -2250,7 +2374,7 @@ export default function Home() {
                 })}
 
               {/* Recently played Section */}
-              {recentlyPlayed.length > 0 && (
+              {settings.showRecentlyPlayed !== false && recentlyPlayed.length > 0 && (
                 <MediaSection
                   title="Recently played"
                   actionText="See all"
@@ -2313,35 +2437,55 @@ export default function Home() {
       </div>
 
       {/* Floating Glassmorphic Bottom Player Dock */}
-      <AudioPlayer
-        currentTrack={currentTrack}
-        playbackUrl={playbackUrl}
-        isLoadingStream={isLoadingStream}
-        isPlaying={isPlaying}
-        currentTime={currentTime}
-        duration={duration}
-        volume={volume}
-        isMuted={isMuted}
-        isShuffle={isShuffle}
-        isRepeat={isRepeat}
-        isLiked={isCurrentLiked}
-        onToggleLike={() => handleToggleLike(currentTrack)}
-        onTogglePlay={togglePlay}
-        onSeek={handleSeek}
-        onVolumeChange={setVolume}
-        onToggleMute={() => setIsMuted(!isMuted)}
-        onToggleShuffle={handleToggleShuffle}
-        onToggleRepeat={handleToggleRepeat}
-        onNext={handleNextTrack}
-        onPrev={handlePrevTrack}
-        onToggleLyrics={handleToggleLyrics}
-        onToggleRightPanel={() => setIsRightPanelOpen(!isRightPanelOpen)}
-        onOpenQueueModal={() => setShowQueueModal(true)}
-        isRightPanelOpen={isRightPanelOpen}
-        onOpenVisualizer={() => setShowFullscreenVisualizer(true)}
-        sleepTimerRemaining={sleepTimerRemainingMinutes}
-        onOpenSleepTimer={() => setShowSleepTimerModal(true)}
-        playerShape={settings.playerShape}
+      {currentTrack && isPlaying && (
+        <AudioPlayer
+          currentTrack={currentTrack}
+          playbackUrl={playbackUrl}
+          isLoadingStream={isLoadingStream}
+          isPlaying={isPlaying}
+          currentTime={currentTime}
+          duration={duration}
+          volume={volume}
+          isMuted={isMuted}
+          isShuffle={isShuffle}
+          isRepeat={isRepeat}
+          isLiked={isCurrentLiked}
+          queueCount={queue.length}
+          onToggleLike={() => handleToggleLike(currentTrack)}
+          onTogglePlay={togglePlay}
+          onSeek={handleSeek}
+          onVolumeChange={(newVol) => {
+            setVolume(newVol);
+            if (settings.rememberVolume) {
+              updateSettings({ savedVolume: newVol });
+            }
+          }}
+          onToggleMute={() => setIsMuted(!isMuted)}
+          onToggleShuffle={handleToggleShuffle}
+          onToggleRepeat={handleToggleRepeat}
+          onNext={handleNextTrack}
+          onPrev={handlePrevTrack}
+          onToggleLyrics={handleToggleLyrics}
+          onToggleRightPanel={() => setIsRightPanelOpen(!isRightPanelOpen)}
+          onOpenQueueModal={() => setShowQueueModal(true)}
+          isRightPanelOpen={isRightPanelOpen}
+          onOpenVisualizer={() => setShowFullscreenVisualizer(true)}
+          sleepTimerRemaining={sleepTimerRemainingMinutes}
+          onOpenSleepTimer={() => setShowSleepTimerModal(true)}
+          onClose={handleClosePlayer}
+          playerShape={settings.playerShape}
+        />
+      )}
+
+      {/* Global Sticky Mobile Bottom Navigation */}
+      <MobileBottomNav
+        activeNav={active}
+        onSelectNav={(name) => {
+          setActive(name);
+          setQuery("");
+          setActivePlaylist(null);
+        }}
+        hasActiveTrack={Boolean(currentTrack && isPlaying)}
       />
 
       {/* Synchronized Karaoke Lyrics Modal */}
@@ -2392,8 +2536,32 @@ export default function Home() {
         onToggleRepeat={handleToggleRepeat}
         isLiked={isCurrentLiked}
         onToggleLike={() => handleToggleLike(currentTrack)}
-        accentGlow={artworkTheme.glowRgba}
+        onPlayNext={handlePlayNext}
+        onAddToQueue={handleAddTrackToQueue}
+        onAskAI={(t) => {
+          setActive("AI Hub");
+          setShowFullscreenVisualizer(false);
+        }}
       />
+
+      {/* Global Track Action Sheet (for Quick Picks, Library, etc.) */}
+      {selectedContextTrack && (
+        <TrackActionSheet
+          track={selectedContextTrack}
+          isOpen={Boolean(selectedContextTrack)}
+          onClose={() => setSelectedContextTrack(null)}
+          onPlay={(t) => handlePlayTrack(t, [t], 0)}
+          onPlayNext={handlePlayNext}
+          onAddToQueue={handleAddTrackToQueue}
+          isLiked={favoritesIds.has(selectedContextTrack.id)}
+          onToggleLike={() => handleToggleLike(selectedContextTrack)}
+          onAskAI={(t) => {
+            setActive("AI Hub");
+            setSelectedContextTrack(null);
+          }}
+          onAddToPlaylist={(t) => setPlaylistToAddTo(t)}
+        />
+      )}
 
       {/* Add To Playlist Modal */}
       <AddToPlaylistModal

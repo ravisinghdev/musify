@@ -34,6 +34,8 @@ export interface EqualizerBands {
   14000: number;// Treble
 }
 
+export type LandingPage = "Home" | "Explore" | "Search" | "Your favorites";
+
 export interface MusifySettings {
   // Audio & Quality
   audioQualityWifi: AudioQuality;
@@ -46,6 +48,10 @@ export interface MusifySettings {
   gaplessPlayback: boolean;
   automix: boolean;
   monoAudio: boolean;
+  rememberVolume: boolean;
+  savedVolume: number;
+  defaultShuffle: boolean;
+  defaultRepeat: boolean;
 
   // Equalizer & Acoustic Studio
   equalizerEnabled: boolean;
@@ -79,6 +85,10 @@ export interface MusifySettings {
   compactMode: boolean;
   playerShape: PlayerShape;
   showSidebarBadges: boolean;
+  reduceMotion: boolean;
+  landingPage: LandingPage;
+  showRecommendations: boolean;
+  showRecentlyPlayed: boolean;
 
   // Storage & Cache
   cacheLimitMb: number;
@@ -87,6 +97,16 @@ export interface MusifySettings {
   // Privacy & Social
   privateSession: boolean;
   listeningActivity: boolean;
+
+  // Touch & Haptic Interactions
+  hapticsEnabled: boolean;
+  hapticIntensity: "light" | "standard" | "strong";
+  gesturesEnabled: boolean;
+  gestureSwipeTracks: boolean;
+  gestureSwipeClose: boolean;
+  gestureDoubleTapLike: boolean;
+  gestureQueueSwipe: boolean;
+  gestureLongPress: boolean;
 }
 
 export const EQUALIZER_PRESETS: Record<EqualizerPreset, EqualizerBands> = {
@@ -113,6 +133,10 @@ export const DEFAULT_SETTINGS: MusifySettings = {
   gaplessPlayback: true,
   automix: true,
   monoAudio: false,
+  rememberVolume: true,
+  savedVolume: 0.8,
+  defaultShuffle: false,
+  defaultRepeat: false,
 
   // Equalizer & Acoustic Studio
   equalizerEnabled: false,
@@ -137,7 +161,7 @@ export const DEFAULT_SETTINGS: MusifySettings = {
   lyricsAlignment: "center",
   lyricsRomanized: false,
   lyricsTranslation: false,
-  ambientGlow: true,
+  ambientGlow: false,
   visualizerStyle: "bars",
 
   // Appearance
@@ -146,6 +170,10 @@ export const DEFAULT_SETTINGS: MusifySettings = {
   compactMode: false,
   playerShape: "pill",
   showSidebarBadges: true,
+  reduceMotion: false,
+  landingPage: "Home",
+  showRecommendations: true,
+  showRecentlyPlayed: true,
 
   // Storage & Cache
   cacheLimitMb: 2000,
@@ -154,6 +182,16 @@ export const DEFAULT_SETTINGS: MusifySettings = {
   // Privacy & Social
   privateSession: false,
   listeningActivity: true,
+
+  // Touch & Haptic Interactions
+  hapticsEnabled: true,
+  hapticIntensity: "standard",
+  gesturesEnabled: true,
+  gestureSwipeTracks: true,
+  gestureSwipeClose: true,
+  gestureDoubleTapLike: true,
+  gestureQueueSwipe: true,
+  gestureLongPress: true,
 };
 
 const SETTINGS_STORAGE_KEY = "musify_app_settings_v3";

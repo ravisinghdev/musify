@@ -197,8 +197,13 @@ export function NowPlayingPanel({
 
       {/* Track Title, Artist, & Like Button */}
       <div className="mt-4 flex items-center justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <h3 className="truncate text-lg font-bold text-white tracking-tight">
+        <div className="min-w-0 flex-1 overflow-hidden">
+          <h3
+            title={trackTitle}
+            className={`text-lg font-bold text-white tracking-tight ${
+              trackTitle.length > 25 ? "animate-marquee whitespace-nowrap" : "truncate"
+            }`}
+          >
             {trackTitle}
           </h3>
           <p className="truncate text-xs text-zinc-400 mt-0.5">{artistsText}</p>
@@ -208,7 +213,7 @@ export function NowPlayingPanel({
           <button
             onClick={onToggleLike}
             aria-label={isLiked ? "Unlike" : "Like"}
-            className="text-zinc-400 transition hover:text-white p-1"
+            className="text-zinc-400 transition hover:text-white p-1.5 shrink-0 hover:scale-110 active:scale-95"
           >
             <Icon
               name={isLiked ? "heart-filled" : "heart"}
@@ -400,7 +405,7 @@ export function NowPlayingPanel({
 
         {/* Tab Content */}
         {panelTab === "queue" ? (
-          <div className="mt-3 space-y-1 flex-1 min-h-0 custom-scrollbar pr-1">
+          <div className="mt-3 flex-1 min-h-0 custom-scrollbar pr-1 divide-y divide-white/[0.06]">
             {upNextItems.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-center text-zinc-500">
                 <Icon name="queue" size={24} className="mb-2 opacity-40" />
@@ -417,7 +422,7 @@ export function NowPlayingPanel({
                 <div
                   key={`${item.track.id}-${item.originalIndex}`}
                   onClick={() => onPlayTrack(item.track, item.originalIndex)}
-                  className="group flex items-center justify-between gap-3 rounded-xl p-2 transition hover:bg-white/[0.05] cursor-pointer"
+                  className="group flex items-center justify-between gap-3 p-2.5 transition hover:bg-white/[0.05] cursor-pointer border-b border-white/[0.06] last:border-b-0"
                 >
                   <div className="flex min-w-0 items-center gap-3 flex-1">
                     <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-white/5 bg-zinc-800">
@@ -499,7 +504,7 @@ export function NowPlayingPanel({
               ))}
             </div>
 
-            <div className="space-y-1.5 flex-1 min-h-0 custom-scrollbar pr-1">
+            <div className="flex-1 min-h-0 custom-scrollbar pr-1 divide-y divide-white/[0.06]">
               {isLoadingAISuggestions ? (
                 <div className="flex flex-col items-center justify-center py-10 gap-2">
                   <div className="h-6 w-6 animate-spin rounded-full border-2 border-indigo-400 border-t-transparent" />
@@ -518,7 +523,7 @@ export function NowPlayingPanel({
                 aiSuggestions.map((item, idx) => (
                   <div
                     key={`ai-${item.track.id}-${idx}`}
-                    className="group relative flex flex-col gap-1 rounded-xl p-2 transition bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.05]"
+                    className="group relative flex flex-col gap-1.5 p-2.5 transition bg-white/[0.02] hover:bg-white/[0.06] border-b border-white/[0.06] last:border-b-0"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <div

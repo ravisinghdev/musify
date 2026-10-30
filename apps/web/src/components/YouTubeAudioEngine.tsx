@@ -78,8 +78,33 @@ export function YouTubeAudioEngine({
     onPrevRef.current = onPrev;
   });
 
-  // Sync with OS Media Session API (lock-screen & hardware media keys)
+  // Sync with OS Media Session API & Android Native Foreground Playback Service
   useEffect(() => {
+    // 1. Android Native Background Playback Bridge
+    if (typeof window !== "undefined" && (window as any).MusifyNativeBridge) {
+      try {
+        if (currentTrack) {
+          const artistsText = currentTrack.artists
+            .map((a) => a.name)
+            .join(", ");
+          const art =
+            currentTrack.artworkUrl ||
+            (currentTrack.sourceTrackId
+              ? `https://i.ytimg.com/vi/${currentTrack.sourceTrackId}/hqdefault.jpg`
+              : "");
+          (window as any).MusifyNativeBridge.updatePlayback(
+            currentTrack.title,
+            artistsText,
+            art,
+            isPlaying,
+          );
+        } else {
+          (window as any).MusifyNativeBridge.stopPlayback();
+        }
+      } catch {}
+    }
+
+    // 2. Standard Web Media Session API (lock-screen & hardware media keys)
     if (typeof window === "undefined" || !("mediaSession" in navigator)) return;
 
     if (currentTrack) {
@@ -147,6 +172,26 @@ export function YouTubeAudioEngine({
       }
     };
   }, [currentTrack, isPlaying]);
+
+  // Handle native Android notification / lock screen remote controls
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleNativeControl = (e: any) => {
+      const action = e.detail?.action;
+      if (action === "play") {
+        onIsPlayingChangeRef.current(true);
+      } else if (action === "pause") {
+        onIsPlayingChangeRef.current(false);
+      } else if (action === "next") {
+        onNextRef.current?.();
+      } else if (action === "prev") {
+        onPrevRef.current?.();
+      }
+    };
+    window.addEventListener("musify-native-control", handleNativeControl);
+    return () =>
+      window.removeEventListener("musify-native-control", handleNativeControl);
+  }, []);
 
   // Load YouTube Iframe API
   useEffect(() => {

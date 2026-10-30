@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { Track } from "../types/music";
 import { Icon } from "./Icons";
 
@@ -34,6 +34,7 @@ export function LyricsModal({
 }: LyricsModalProps) {
   const activeLineRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const [activeFontSize, setActiveFontSize] = useState<"compact" | "normal" | "large">(fontSize);
 
   // Parse LRC timestamps [mm:ss.xx] or dynamically distribute plain lyrics across duration
   const parsedLyrics = useMemo<LyricLine[] | null>(() => {
@@ -70,7 +71,7 @@ export function LyricsModal({
       return lrcResults.sort((a, b) => a.timeSeconds - b.timeSeconds);
     }
 
-    // Dynamic phrase-timing fallback for plain lyrics: distribute evenly across track duration
+    // Phrase-timing fallback for plain lyrics
     const cleanLines = rawLines
       .map((l) => l.trim())
       .filter((l) => l.length > 0 && !/^\[.*\]$/.test(l));
@@ -88,7 +89,7 @@ export function LyricsModal({
     }));
   }, [lyrics, track?.durationMs, duration]);
 
-  // Identify current active line index with natural vocal attack anticipation (350ms lead)
+  // Identify current active line index with 350ms lead time
   const activeIndex = useMemo(() => {
     if (!parsedLyrics || parsedLyrics.length === 0) return -1;
     let idx = -1;
@@ -103,7 +104,7 @@ export function LyricsModal({
     return idx;
   }, [parsedLyrics, currentTime]);
 
-  // Smoothly scroll active line directly to container center with graceful easing
+  // Smoothly scroll active line directly to container center
   useEffect(() => {
     if (containerRef.current && activeLineRef.current) {
       const container = containerRef.current;
@@ -127,43 +128,50 @@ export function LyricsModal({
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", handleKeyDown);
-    const fontClass =
-    fontSize === "compact"
-      ? "text-sm sm:text-base"
-      : fontSize === "large"
-      ? "text-lg sm:text-xl md:text-2xl"
-      : "text-base sm:text-lg md:text-xl";
-
-  return () => window.removeEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
   if (!isOpen || !track) return null;
 
   const fontClass =
-    fontSize === "compact"
-      ? "text-sm sm:text-base"
-      : fontSize === "large"
-      ? "text-lg sm:text-xl md:text-2xl"
-      : "text-base sm:text-lg md:text-xl";
+    activeFontSize === "compact"
+      ? "text-sm sm:text-base leading-relaxed"
+      : activeFontSize === "large"
+      ? "text-xl sm:text-2xl md:text-3xl leading-snug font-bold"
+      : "text-base sm:text-lg md:text-xl leading-relaxed font-semibold";
+
+  const displayArt = track.artworkUrl || (track.sourceTrackId ? `https://i.ytimg.com/vi/${track.sourceTrackId}/hqdefault.jpg` : null);
 
   return (
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Song lyrics"
-      onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3 sm:p-4 backdrop-blur-2xl animate-fade-in"
+      aria-label="Song lyrics view"
+      className="fixed inset-0 z-50 flex flex-col bg-[#05060b]/95 backdrop-blur-3xl animate-fade-in text-white overflow-hidden select-none pt-[max(env(safe-area-inset-top,0px),24px)] pb-[calc(100px+max(env(safe-area-inset-bottom,0px),16px))]"
     >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="relative flex h-[90vh] sm:h-[85vh] w-full max-w-xl flex-col rounded-3xl border border-white/10 bg-black/70 p-5 sm:p-8 shadow-2xl backdrop-blur-3xl overflow-hidden"
-      >
-        {/* Soft Ambient Background Aura */}
-        <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-72 w-72 rounded-full bg-indigo-500/15 blur-[120px]" />
+      {/* Dynamic Ambient Background Blur */}
+      {displayArt && (
+        <div
+          className="pointer-events-none absolute inset-0 z-0 opacity-25 blur-[100px] scale-125 transition-all duration-1000"
+          style={{
+            backgroundImage: `url(${displayArt})`,
+            backgroundPosition: "center",
+            backgroundSize: "cover",
+          }}
+        />
+      )}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80 z-0" />
 
-        {/* Header */}
-        <div className="relative z-10 flex items-center justify-between border-b border-white/[0.08] pb-3 sm:pb-4">
-          <div className="min-w-0 pr-4">
+      {/* Top Header Bar */}
+      <header className="relative z-10 flex items-center justify-between px-5 sm:px-8 py-3 border-b border-white/[0.08] max-w-4xl w-full mx-auto">
+        <div className="flex items-center gap-3.5 min-w-0 pr-4">
+          {displayArt && (
+            <div className="h-11 w-11 shrink-0 overflow-hidden rounded-xl border border-white/15 bg-zinc-800 shadow-md">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={displayArt} alt={track.title} className="h-full w-full object-cover" />
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
             <h2 className="truncate text-base sm:text-lg font-bold text-white tracking-tight">
               {track.title}
             </h2>
@@ -171,85 +179,102 @@ export function LyricsModal({
               {track.artists.map((a) => a.name).join(", ")}
             </p>
           </div>
+        </div>
 
-          <div className="flex items-center gap-2.5 shrink-0">
-            {parsedLyrics && (
-              <span className="flex items-center gap-1.5 rounded-full bg-indigo-500/15 px-2.5 py-1 text-[10px] font-semibold text-indigo-300 border border-indigo-500/25">
-                <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse" />
-                Live Sync
-              </span>
-            )}
+        <div className="flex items-center gap-3 shrink-0">
+          {/* Font Size Toggle */}
+          <div className="flex items-center gap-1 rounded-xl bg-white/10 p-1 border border-white/10 text-xs">
             <button
-              onClick={onClose}
-              aria-label="Close lyrics"
-              className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl border border-white/10 text-zinc-400 transition hover:bg-white/10 hover:text-white"
+              type="button"
+              onClick={() => setActiveFontSize("compact")}
+              className={`px-2 py-0.5 rounded-lg transition ${
+                activeFontSize === "compact" ? "bg-white text-black font-bold" : "text-zinc-400 hover:text-white"
+              }`}
             >
-              <Icon name="close" size={17} />
+              A-
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveFontSize("normal")}
+              className={`px-2 py-0.5 rounded-lg transition ${
+                activeFontSize === "normal" ? "bg-white text-black font-bold" : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              A
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveFontSize("large")}
+              className={`px-2 py-0.5 rounded-lg transition ${
+                activeFontSize === "large" ? "bg-white text-black font-bold" : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              A+
             </button>
           </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close lyrics"
+            className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-zinc-300 transition hover:bg-white/15 hover:text-white active:scale-95"
+          >
+            <Icon name="close" size={18} />
+          </button>
         </div>
+      </header>
 
-        {/* Content with Apple Music-style Soft Edge Masking */}
-        <div
-          ref={containerRef}
-          style={{
-            maskImage:
-              "linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)",
-            WebkitMaskImage:
-              "linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)",
-          }}
-          className="relative z-10 mt-2 flex-1 overflow-y-auto custom-scrollbar pr-1 text-center select-none"
-        >
-          {isLoading ? (
-            <div className="flex min-h-[300px] flex-col items-center justify-center gap-3">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-indigo-400 border-t-transparent" />
-              <p className="text-xs text-zinc-400">Loading lyrics...</p>
-            </div>
-          ) : parsedLyrics && parsedLyrics.length > 0 ? (
-            /* Time-synced interactive karaoke view with polite, soft, smooth transitions */
-            <div className="py-36 space-y-3 sm:space-y-4">
-              {parsedLyrics.map((line, idx) => {
-                const isActive = idx === activeIndex;
-                const isPast = idx < activeIndex;
+      {/* Main Lyrics Scroll View with Apple Music-Style Fading Edges */}
+      <div
+        ref={containerRef}
+        style={{
+          maskImage:
+            "linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%)",
+          WebkitMaskImage:
+            "linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%)",
+        }}
+        className="relative z-10 flex-1 overflow-y-auto custom-scrollbar px-6 sm:px-12 text-center max-w-3xl w-full mx-auto"
+      >
+        {isLoading ? (
+          <div className="flex min-h-[400px] flex-col items-center justify-center gap-3">
+            <div className="h-7 w-7 animate-spin rounded-full border-2 border-indigo-400 border-t-transparent" />
+            <p className="text-sm text-zinc-400 font-medium">Fetching real-time synced lyrics...</p>
+          </div>
+        ) : parsedLyrics && parsedLyrics.length > 0 ? (
+          <div className="py-32 space-y-4 sm:space-y-6">
+            {parsedLyrics.map((line, idx) => {
+              const isActive = idx === activeIndex;
+              const isPast = idx < activeIndex;
 
-                const fontClass =
-    fontSize === "compact"
-      ? "text-sm sm:text-base"
-      : fontSize === "large"
-      ? "text-lg sm:text-xl md:text-2xl"
-      : "text-base sm:text-lg md:text-xl";
-
-  return (
-                  <div
-                    key={idx}
-                    ref={isActive ? activeLineRef : null}
-                    onClick={() => onSeek && onSeek(line.timeSeconds)}
-                    className={`cursor-pointer rounded-2xl py-2 px-3 sm:py-2.5 sm:px-4 ${fontClass} transition-all duration-700 ease-out ${
-                      isActive
-                        ? "text-white font-semibold opacity-100 bg-white/[0.06] drop-shadow-[0_2px_14px_rgba(255,255,255,0.35)]"
-                        : isPast
-                        ? "text-zinc-500 font-normal opacity-30 hover:opacity-75 hover:text-zinc-300"
-                        : "text-zinc-400 font-normal opacity-50 hover:opacity-85 hover:text-zinc-200"
-                    }`}
-                  >
-                    {line.text}
-                  </div>
-                );
-              })}
+              return (
+                <div
+                  key={`${line.timeSeconds}-${idx}`}
+                  ref={isActive ? activeLineRef : null}
+                  onClick={() => onSeek && onSeek(line.timeSeconds)}
+                  className={`group cursor-pointer transition-all duration-300 rounded-2xl px-4 py-2 ${
+                    isActive
+                      ? "scale-105 text-white font-extrabold drop-shadow-[0_0_24px_rgba(255,255,255,0.7)]"
+                      : isPast
+                      ? "text-zinc-500 opacity-60 hover:opacity-100 hover:text-zinc-200"
+                      : "text-zinc-400 opacity-70 hover:opacity-100 hover:text-zinc-200"
+                  }`}
+                >
+                  <p className={fontClass}>{line.text}</p>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="flex min-h-[400px] flex-col items-center justify-center gap-3 text-center px-4">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5 border border-white/10 text-zinc-500">
+              <Icon name="mic" size={28} />
             </div>
-          ) : lyrics ? (
-            /* Plain styled lyrics view */
-            <div className="py-12 px-4 space-y-4 whitespace-pre-line font-medium leading-relaxed text-zinc-200 text-base sm:text-lg">
-              {lyrics}
-            </div>
-          ) : (
-            <div className="flex min-h-[300px] flex-col items-center justify-center text-zinc-500">
-              <Icon name="mic" size={32} className="mb-2 opacity-40" />
-              <p className="text-sm font-semibold">No lyrics available</p>
-              <p className="text-xs text-zinc-600 mt-1">Lyrics for this song have not yet been indexed.</p>
-            </div>
-          )}
-        </div>
+            <h3 className="text-lg font-bold text-white">Lyrics Not Available</h3>
+            <p className="text-xs text-zinc-400 max-w-sm">
+              We couldn&apos;t find synchronized lyrics for &ldquo;{track.title}&rdquo;. You can still listen and control playback normally.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
