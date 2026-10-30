@@ -331,55 +331,102 @@ export const dbService = {
     return true;
   },
 
-  // 4. Listening History (Automatic Deduping & Size Bound)
+  // 4. Listening History (Lifting to Top, Deduplicated & Bounded)
   async getHistory(userId: string, limit = 50): Promise<TrackData[]> {
     const rows = await prisma.listeningHistory.findMany({
       where: { userId },
       orderBy: { playedAt: "desc" },
-      take: Math.min(100, Math.max(1, limit)),
+      take: Math.min(100, Math.max(1, limit * 2)),
     });
 
-    return rows.map((r) => {
-      let artists = [{ id: "", name: "Musify Artist" }];
-      try {
-        artists = JSON.parse(r.artistsJson);
-      } catch {}
+    const seen = new Set<string>();
+    const unique: TrackData[] = [];
 
-      return {
-        id: r.trackId,
-        title: r.title,
-        artists,
-        album: r.albumTitle ? { id: "", title: r.albumTitle } : undefined,
-        durationMs: r.durationMs ?? undefined,
-        artworkUrl: r.artworkUrl ?? undefined,
-        sourceTrackId: r.sourceTrackId,
-      };
-    });
+    for (const r of rows) {
+      const key = (r.sourceTrackId || r.trackId.replace(/^yt_/, "")).toLowerCase();
+      if (!seen.has(key)) {
+        seen.add(key);
+
+        let artists = [{ id: "", name: "Musify Artist" }];
+        try {
+          artists = JSON.parse(r.artistsJson);
+        } catch {}
+
+        unique.push({
+          id: r.trackId,
+          title: r.title,
+          artists,
+          album: r.albumTitle ? { id: "", title: r.albumTitle } : undefined,
+          durationMs: r.durationMs ?? undefined,
+          artworkUrl: r.artworkUrl ?? undefined,
+          sourceTrackId: r.sourceTrackId,
+        });
+
+        if (unique.length >= limit) break;
+      }
+    }
+
+    return unique;
   },
 
   async addHistory(userId: string, track: TrackData): Promise<TrackData[]> {
-    // Remove immediate duplicate if played consecutively
-    const latest = await prisma.listeningHistory.findFirst({
-      where: { userId },
-      orderBy: { playedAt: "desc" },
+    const cleanSourceId = track.sourceTrackId || track.id.replace(/^yt_/, "");
+
+    // Delete any older occurrence of this track so it lifts to the very top without duplicate rows
+    await prisma.listeningHistory.deleteMany({
+      where: {
+        userId,
+        OR: [
+          { trackId: track.id },
+          { trackId: `yt_${cleanSourceId}` },
+          { trackId: cleanSourceId },
+          { sourceTrackId: cleanSourceId },
+        ],
+      },
     });
 
-    if (!latest || latest.trackId !== track.id) {
-      await prisma.listeningHistory.create({
-        data: {
-          userId,
-          trackId: track.id,
-          title: sanitizeText(track.title, 200),
-          artistsJson: JSON.stringify(track.artists || []),
-          albumTitle: track.album?.title ? sanitizeText(track.album.title, 200) : null,
-          artworkUrl: track.artworkUrl,
-          durationMs: track.durationMs,
-          sourceTrackId: track.sourceTrackId || track.id.replace(/^yt_/, ""),
-        },
-      });
-    }
+    // Insert as the newest top entry
+    await prisma.listeningHistory.create({
+      data: {
+        userId,
+        trackId: track.id,
+        title: sanitizeText(track.title, 200),
+        artistsJson: JSON.stringify(track.artists || []),
+        albumTitle: track.album?.title ? sanitizeText(track.album.title, 200) : null,
+        artworkUrl: track.artworkUrl,
+        durationMs: track.durationMs,
+        sourceTrackId: cleanSourceId,
+        playedAt: new Date(),
+      },
+    });
 
     return await this.getHistory(userId, 30);
+  },
+
+  // 6. Cross-Platform User Settings Synchronization
+  async getSettings(userId: string): Promise<Record<string, any>> {
+    const session = await prisma.userSession.findUnique({
+      where: { id: userId },
+      select: { settingsJson: true },
+    });
+    if (!session || !session.settingsJson) return {};
+    try {
+      return JSON.parse(session.settingsJson);
+    } catch {
+      return {};
+    }
+  },
+
+  async updateSettings(userId: string, settings: Record<string, any>): Promise<Record<string, any>> {
+    const current = await this.getSettings(userId);
+    const merged = { ...current, ...settings };
+    await prisma.userSession.update({
+      where: { id: userId },
+      data: {
+        settingsJson: JSON.stringify(merged),
+      },
+    });
+    return merged;
   },
 };
 

@@ -77,7 +77,7 @@ Always return pure JSON matching this exact structure:
         };
 
         const res = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${this.apiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${this.apiKey}`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -193,5 +193,179 @@ Always return pure JSON matching this exact structure:
       description: playlistDesc,
       tracks: verifiedTracks,
     };
+  }
+
+  /**
+   * Generates intelligent next-song suggestions and seamless queue transitions using Gemini 3.6 Flash.
+   */
+  async getAISmartQueueSuggestions(
+    currentTrack: TrackData,
+    queue: TrackData[] = [],
+    mood: string = "smart",
+    limit: number = 6,
+  ): Promise<
+    Array<{
+      track: TrackData;
+      reason: string;
+      badge: string;
+    }>
+  > {
+    const maxCount = Math.min(10, Math.max(2, limit));
+    const currentArtist = currentTrack.artists?.[0]?.name || "Unknown Artist";
+    const currentTitle = currentTrack.title || "Unknown Song";
+
+    const existingIds = new Set<string>([
+      currentTrack.id,
+      currentTrack.sourceTrackId,
+      ...queue.map((t) => t.id),
+      ...queue.map((t) => t.sourceTrackId),
+    ]);
+
+    let aiSuggestions: Array<{
+      title: string;
+      artist: string;
+      reason?: string;
+      badge?: string;
+    }> = [];
+
+    if (this.apiKey) {
+      try {
+        const queueContext = queue
+          .slice(0, 4)
+          .map((t) => `"${t.title}" by ${t.artists?.[0]?.name || "Artist"}`)
+          .join(", ");
+
+        const prompt = `Current playing song: "${currentTitle}" by ${currentArtist}.
+Upcoming queue tracks: [${queueContext || "None yet"}].
+Requested vibe style: "${mood}".
+
+As a professional AI Music DJ, select ${maxCount} real, popular songs that would blend or transition smoothly after this song.
+Return pure JSON with this exact schema:
+{
+  "suggestions": [
+    {
+      "title": "Song Title",
+      "artist": "Artist Name",
+      "reason": "1 brief sentence explaining the acoustic / energy / genre transition",
+      "badge": "Short 2-3 word tag like 'Vibe Match', 'Energy Lift', 'Deep Cut', 'Acoustic Blend'"
+    }
+  ]
+}`;
+
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${this.apiKey}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ role: "user", parts: [{ text: prompt }] }],
+              generationConfig: {
+                responseMimeType: "application/json",
+                temperature: 0.65,
+                maxOutputTokens: 1024,
+              },
+            }),
+          },
+        );
+
+        if (res.ok) {
+          const json = await res.json();
+          const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text) {
+            const parsed = JSON.parse(text);
+            if (Array.isArray(parsed.suggestions)) {
+              aiSuggestions = parsed.suggestions;
+            }
+          }
+        }
+      } catch (err) {
+        console.warn(
+          "[AIService.getAISmartQueueSuggestions] Gemini error:",
+          err,
+        );
+      }
+    }
+
+    // Resolve AI suggestions to playable YouTube Music tracks
+    const resolvedResults: Array<{
+      track: TrackData;
+      reason: string;
+      badge: string;
+    }> = [];
+
+    if (aiSuggestions.length > 0) {
+      const searchPromises = aiSuggestions.map(async (s) => {
+        try {
+          const query = `${s.title} ${s.artist}`.trim();
+          const searchRes = await this.provider.searchTracks(query);
+          const topTrack = searchRes.tracks?.[0];
+          if (
+            topTrack &&
+            !existingIds.has(topTrack.id) &&
+            !existingIds.has(topTrack.sourceTrackId)
+          ) {
+            existingIds.add(topTrack.id);
+            existingIds.add(topTrack.sourceTrackId);
+            return {
+              track: topTrack,
+              reason:
+                s.reason || `Complements "${currentTitle}" by ${currentArtist}`,
+              badge: s.badge || "✨ Vibe Match",
+            };
+          }
+          return null;
+        } catch {
+          return null;
+        }
+      });
+
+      const settled = await Promise.allSettled(searchPromises);
+      for (const item of settled) {
+        if (item.status === "fulfilled" && item.value) {
+          resolvedResults.push(item.value);
+        }
+      }
+    }
+
+    // Fallback: If AI returned fewer results, populate with algorithmic YouTube upNext & artist radio
+    if (resolvedResults.length < maxCount) {
+      try {
+        const cleanId = (currentTrack.sourceTrackId || currentTrack.id).replace(
+          /^yt_/,
+          "",
+        );
+        const fallbackQueue = await this.provider.getQueue(cleanId);
+        const candidates = fallbackQueue.tracks || [];
+
+        const defaultBadges = [
+          "✨ Seamless Flow",
+          "✨ Artist Radio",
+          "✨ Vibe Harmony",
+          "✨ Up Next",
+          "✨ Curated Pick",
+        ];
+
+        for (
+          let i = 0;
+          i < candidates.length && resolvedResults.length < maxCount;
+          i++
+        ) {
+          const t = candidates[i];
+          if (!existingIds.has(t.id) && !existingIds.has(t.sourceTrackId)) {
+            existingIds.add(t.id);
+            existingIds.add(t.sourceTrackId);
+            resolvedResults.push({
+              track: t,
+              reason: `Continuously recommended after "${currentTitle}"`,
+              badge: defaultBadges[i % defaultBadges.length],
+            });
+          }
+        }
+      } catch (e) {
+        console.warn("[AIService] Fallback queue error:", e);
+      }
+    }
+
+    return resolvedResults.slice(0, maxCount);
   }
 }

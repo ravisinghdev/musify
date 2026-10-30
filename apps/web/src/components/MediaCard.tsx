@@ -36,7 +36,7 @@ export function MediaCard({
   const cleanId = id ? id.replace(/^yt_/, "") : "";
   const ytFallback = cleanId && cleanId.length === 11
     ? `https://i.ytimg.com/vi/${cleanId}/hqdefault.jpg`
-    : undefined;
+    : "https://i.ytimg.com/vi/DlFXDl_ROAM/hqdefault.jpg";
   const displayArt = imgError ? ytFallback : artworkUrl || ytFallback;
 
   return (
@@ -46,19 +46,20 @@ export function MediaCard({
     >
       {/* Artwork Box */}
       <div className={`relative w-full overflow-hidden rounded-xl bg-zinc-800 ${aspectClass}`}>
-        {displayArt ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={displayArt}
-            alt={title}
-            onError={() => setImgError(true)}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-zinc-600">
-            <Icon name="music" size={32} />
-          </div>
-        )}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={displayArt}
+          alt={title}
+          onError={(e) => {
+            if (!imgError) {
+              setImgError(true);
+            } else {
+              (e.currentTarget as HTMLImageElement).src =
+                "https://i.ytimg.com/vi/DlFXDl_ROAM/hqdefault.jpg";
+            }
+          }}
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
 
         {/* Dynamic Badge (e.g. "Playlist • 50 tracks") */}
         {badge && (

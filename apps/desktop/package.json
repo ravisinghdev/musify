@@ -1,0 +1,30 @@
+{
+  "name": "musify-desktop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Musify - Premium Desktop Music Player",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir -c.win.signAndEditExecutable=false",
+    "dist": "electron-builder --win portable -c.win.signAndEditExecutable=false"
+  },
+  "build": {
+    "appId": "com.musify.desktop",
+    "productName": "Musify",
+    "copyright": "Copyright © 2026 Musify",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": ["dir", "portable"],
+      "icon": "assets/icon.png",
+      "signAndEditExecutable": false,
+      "verifyUpdateCodeSignature": false
+    }
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  }
+}

@@ -1,16 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const geistSans = { variable: "font-sans" };
+const geistMono = { variable: "font-mono" };
 
 export const viewport: Viewport = {
   themeColor: "#07090e",
@@ -58,7 +51,9 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col   text-white">
-        {children}
+        <Suspense fallback={<div className="min-h-screen bg-[#07090e]" />}>
+          {children}
+        </Suspense>
         <script
           dangerouslySetInnerHTML={{
             __html: `

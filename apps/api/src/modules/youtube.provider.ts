@@ -83,9 +83,9 @@ function extractThumbnail(item: any): string | undefined {
     url = "https:" + url;
   }
 
-  // Upgrade Google User Content thumbnails to ultra crisp 800x800
+  // Upgrade Google User Content thumbnails to high resolution 544x544 (official YouTube Music standard)
   if (url.includes("googleusercontent.com") || url.includes("ggpht.com")) {
-    url = url.replace(/=w\d+-h\d+.*$/, "=w800-h800-l90-rj");
+    url = url.replace(/=w\d+-h\d+.*$/, "=w544-h544-l90-rj");
   } else if (
     url.includes("i.ytimg.com/vi/") ||
     url.includes("img.youtube.com/vi/")

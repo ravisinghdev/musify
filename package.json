@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
+    "build:exe": "pnpm --filter musify-desktop run dist",
+    "build:apk": "pnpm --filter web exec cap sync android && cd apps/web/android && gradlew.bat assembleDebug",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck"
   },

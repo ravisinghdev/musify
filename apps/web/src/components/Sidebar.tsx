@@ -18,8 +18,11 @@ export interface SidebarProps {
   activePlaylistId?: string;
   onSelectPlaylist: (playlist: CustomPlaylist) => void;
   onCreatePlaylist: () => void;
+  onImportPlaylist?: () => void;
+  onOpenRoom?: () => void;
   favoritesCount?: number;
   recentlyPlayedCount?: number;
+  onOpenSettings?: () => void;
   navItems?: NavItem[];
   className?: string;
 }
@@ -37,14 +40,17 @@ export function Sidebar({
   activePlaylistId,
   onSelectPlaylist,
   onCreatePlaylist,
+  onImportPlaylist,
+  onOpenRoom,
   favoritesCount = 0,
   recentlyPlayedCount = 0,
+  onOpenSettings,
   navItems = DEFAULT_NAV_ITEMS,
   className = "",
 }: SidebarProps) {
   return (
     <aside
-      className={`hidden w-[240px] shrink-0 border-r border-white/[0.08] px-4 py-5 backdrop-blur-2xl lg:flex lg:flex-col h-full overflow-hidden select-none z-10 ${className}`}
+      className={`hidden w-[240px] shrink-0 border-r border-white/[0.08] px-4 py-5 backdrop-blur-2xl lg:flex lg:flex-col h-full overflow-hidden select-none z-10 overflow-y-auto ${className}`}
     >
       {/* Brand Logo */}
       <div className="mb-8 px-2">
@@ -126,6 +132,42 @@ export function Sidebar({
           <Icon name="list" size={18} />
           <span>Playlists</span>
         </button>
+
+        <button
+          onClick={() => onSelectNav("Offline")}
+          className={`flex w-full items-center gap-3.5 rounded-xl px-3 py-2 text-sm font-medium transition ${
+            activeNav === "Offline"
+              ? "bg-white/[0.1] text-white"
+              : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
+          }`}
+        >
+          <Icon name="download" size={18} />
+          <span>Downloaded</span>
+        </button>
+
+        <button
+          onClick={() => onSelectNav("Stats")}
+          className={`flex w-full items-center gap-3.5 rounded-xl px-3 py-2 text-sm font-medium transition ${
+            activeNav === "Stats"
+              ? "bg-white/[0.1] text-white"
+              : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
+          }`}
+        >
+          <Icon name="sparkles" size={18} />
+          <span>Sound Capsule</span>
+        </button>
+
+        {onOpenRoom && (
+          <button
+            onClick={onOpenRoom}
+            className="flex w-full items-center gap-3.5 rounded-xl px-3 py-2 text-sm font-medium transition text-purple-300 hover:bg-purple-500/10 hover:text-purple-200"
+          >
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-purple-500/30 text-purple-300">
+              <Icon name="sparkles" size={11} />
+            </span>
+            <span>Listen Together</span>
+          </button>
+        )}
       </nav>
 
       {/* Custom Playlists Section */}
@@ -133,18 +175,30 @@ export function Sidebar({
         <p className="text-[11px] font-semibold uppercase tracking-[1.5px] text-zinc-500">
           Playlists
         </p>
-        <button
-          onClick={onCreatePlaylist}
-          aria-label="Create playlist"
-          title="Create new playlist"
-          className="flex h-5 w-5 items-center justify-center rounded-md text-zinc-400 transition hover:bg-white/10 hover:text-white"
-        >
-          <Icon name="plus" size={15} />
-        </button>
+        <div className="flex items-center gap-1.5">
+          {onImportPlaylist && (
+            <button
+              onClick={onImportPlaylist}
+              aria-label="Import playlist"
+              title="Import from Spotify / YouTube"
+              className="flex h-5 w-5 items-center justify-center rounded-md text-zinc-400 transition hover:bg-white/10 hover:text-white"
+            >
+              <Icon name="download" size={14} />
+            </button>
+          )}
+          <button
+            onClick={onCreatePlaylist}
+            aria-label="Create playlist"
+            title="Create new playlist"
+            className="flex h-5 w-5 items-center justify-center rounded-md text-zinc-400 transition hover:bg-white/10 hover:text-white"
+          >
+            <Icon name="plus" size={15} />
+          </button>
+        </div>
       </div>
 
       {/* Scrollable Playlists List */}
-      <div className="flex-1 min-h-0 space-y-1 pr-1 custom-scrollbar">
+      <div className="flex-1 min-h-0 space-y-1 pr-1 overflow-y-auto sidebar-scrollbar">
         {playlists.map((pl) => (
           <button
             key={pl.id}
@@ -169,8 +223,27 @@ export function Sidebar({
         ))}
       </div>
 
-      {/* Install PWA Button */}
-      <div className="mt-3 pt-3 border-t border-white/[0.06]">
+      {/* Bottom Actions: Settings & PWA */}
+      <div className="pt-3 shrink-0 border-t border-white/[0.08] mt-2 space-y-1 bg-transparent">
+        {onOpenSettings && (
+          <button
+            onClick={onOpenSettings}
+            className={`flex w-full items-center gap-3.5 rounded-xl px-3 py-2 text-sm font-medium transition ${
+              activeNav === "Settings"
+                ? "bg-white/[0.1] text-white shadow-sm font-semibold"
+                : "text-zinc-400 hover:bg-white/[0.06] hover:text-white"
+            }`}
+          >
+            <Icon
+              name="settings"
+              size={18}
+              className={
+                activeNav === "Settings" ? "text-indigo-400" : "text-zinc-400"
+              }
+            />
+            <span>Settings</span>
+          </button>
+        )}
         <InstallPwaButton variant="sidebar" />
       </div>
     </aside>

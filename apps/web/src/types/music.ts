@@ -124,3 +124,10 @@ export interface PlaybackResult {
   };
 }
 
+export interface AISuggestionItem {
+  track: Track;
+  reason: string;
+  badge: string;
+}
+
+

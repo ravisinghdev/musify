@@ -13,6 +13,11 @@ interface TrackRowProps {
   onToggleLike?: (track: Track) => void;
   onAddToPlaylist?: (track: Track) => void;
   onRemove?: (track: Track) => void;
+  onSelectArtist?: (artist: any) => void;
+  onSelectAlbum?: (album: any) => void;
+  onDownload?: (track: Track) => void;
+  isDownloaded?: boolean;
+  compact?: boolean;
 }
 
 function formatDuration(ms?: number): string {
@@ -32,6 +37,11 @@ export function TrackRow({
   onToggleLike,
   onAddToPlaylist,
   onRemove,
+  onSelectArtist,
+  onSelectAlbum,
+  onDownload,
+  isDownloaded = false,
+  compact = false,
 }: TrackRowProps) {
   const [imgError, setImgError] = React.useState(false);
   const artistsText = track.artists.map((a) => a.name).join(", ");
@@ -43,7 +53,9 @@ export function TrackRow({
   return (
     <div
       onClick={() => onPlay(track)}
-      className={`group flex items-center justify-between gap-4 rounded-xl px-3 py-2.5 transition cursor-pointer select-none ${
+      className={`group flex items-center justify-between gap-4 rounded-xl px-3 transition cursor-pointer select-none ${
+        compact ? "py-1.5" : "py-2.5"
+      } ${
         isCurrent
           ? "bg-white/[0.08] text-white"
           : "hover:bg-white/[0.04] text-zinc-300"
@@ -97,17 +109,62 @@ export function TrackRow({
           >
             {track.title}
           </p>
-          <p className="truncate text-xs text-zinc-500">{artistsText}</p>
+          <p className="truncate text-xs text-zinc-500">
+            {track.artists.map((artist, aIdx) => (
+              <span key={`${artist.id || artist.name}-${aIdx}`}>
+                {aIdx > 0 && ", "}
+                <span
+                  onClick={(e) => {
+                    if (onSelectArtist && artist.id) {
+                      e.stopPropagation();
+                      onSelectArtist(artist);
+                    }
+                  }}
+                  className={onSelectArtist && artist.id ? "hover:text-zinc-200 hover:underline cursor-pointer" : ""}
+                >
+                  {artist.name}
+                </span>
+              </span>
+            ))}
+          </p>
         </div>
       </div>
 
       {track.album && (
-        <span className="hidden w-1/4 truncate text-xs text-zinc-500 md:block">
+        <span
+          onClick={(e) => {
+            if (onSelectAlbum && track.album?.id) {
+              e.stopPropagation();
+              onSelectAlbum(track.album);
+            }
+          }}
+          className={`hidden w-1/4 truncate text-xs text-zinc-500 md:block ${
+            onSelectAlbum && track.album?.id ? "hover:text-zinc-200 hover:underline cursor-pointer" : ""
+          }`}
+        >
           {track.album.title}
         </span>
       )}
 
       <div className="flex items-center gap-2 sm:gap-3">
+        {onDownload && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDownload(track);
+            }}
+            title={isDownloaded ? "Downloaded offline" : "Download offline"}
+            aria-label="Download track"
+            className={`p-1 transition active:scale-90 ${
+              isDownloaded
+                ? "text-emerald-400 opacity-100"
+                : "text-zinc-500 opacity-0 group-hover:opacity-100 hover:text-white"
+            }`}
+          >
+            <Icon name="download" size={14} />
+          </button>
+        )}
+
         {onAddToPlaylist && (
           <button
             onClick={(e) => {
@@ -143,10 +200,10 @@ export function TrackRow({
               onToggleLike(track);
             }}
             aria-label={isLiked ? "Unlike" : "Like"}
-            className={`p-1 transition ${
+            className={`p-1.5 transition active:scale-90 ${
               isLiked
-                ? "text-rose-500"
-                : "text-zinc-500 opacity-0 group-hover:opacity-100 hover:text-white"
+                ? "text-rose-500 opacity-100"
+                : "text-zinc-500 opacity-60 sm:opacity-0 sm:group-hover:opacity-100 hover:text-white hover:opacity-100"
             }`}
           >
             <Icon

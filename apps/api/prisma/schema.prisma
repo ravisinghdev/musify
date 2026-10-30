@@ -22,12 +22,14 @@ model UserSession {
   verificationCodeHash  String?
   verificationExpiresAt DateTime?
   lastLoginAt           DateTime?
+  settingsJson          String?            @default("{}")
   createdAt             DateTime           @default(now())
   updatedAt             DateTime           @updatedAt
 
   playlists             Playlist[]
   favorites             FavoriteTrack[]
   history               ListeningHistory[]
+  notifications         Notification[]
 
   @@index([tokenHash])
   @@map("user_sessions")
@@ -110,4 +112,26 @@ model ListeningHistory {
   @@index([userId, playedAt(sort: Desc)])
   @@map("listening_history")
 }
+
+// In-app notifications for users
+model Notification {
+  id         String   @id @default(cuid())
+  userId     String
+  type       String   @default("info") // "info" | "track" | "playlist" | "system" | "achievement"
+  title      String
+  message    String
+  icon       String?
+  artworkUrl String?
+  actionUrl  String?
+  isRead     Boolean  @default(false)
+  isSystem   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  user       UserSession @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
 

@@ -416,22 +416,60 @@ export const store = {
     displayName?: string,
     avatarUrl?: string,
   ): Promise<SafeUser> {
-    const res = await fetch(`${API_BASE}/auth/profile`, {
-      method: "PATCH",
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ displayName, avatarUrl }),
-    });
+    try {
+      const res = await fetch(`${API_BASE}/auth/profile`, {
+        method: "PATCH",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ displayName, avatarUrl }),
+      });
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || "Failed to update profile");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.user) {
+          localStorage.setItem(KEYS.AUTH_USER, JSON.stringify(data.user));
+          return data.user;
+        }
+      }
+    } catch {
+      // Non-blocking fallback to local session update
     }
 
-    const data = await res.json();
-    if (data.user) {
-      localStorage.setItem(KEYS.AUTH_USER, JSON.stringify(data.user));
+    // Fallback for guest or offline mode: Update local user object
+    let existing: SafeUser;
+    try {
+      const cached = localStorage.getItem(KEYS.AUTH_USER);
+      existing = cached
+        ? JSON.parse(cached)
+        : {
+            id: `guest_${Date.now()}`,
+            email: "guest@musify.app",
+            displayName: displayName || "Musify Guest",
+            avatarUrl: avatarUrl || null,
+            isAnonymous: true,
+            createdAt: new Date().toISOString(),
+          };
+    } catch {
+      existing = {
+        id: `guest_${Date.now()}`,
+        email: "guest@musify.app",
+        displayName: displayName || "Musify Guest",
+        avatarUrl: avatarUrl || null,
+        isAnonymous: true,
+        createdAt: new Date().toISOString(),
+      };
     }
-    return data.user;
+
+    const updated: SafeUser = {
+      ...existing,
+      ...(displayName !== undefined && { displayName }),
+      ...(avatarUrl !== undefined && { avatarUrl }),
+    };
+
+    try {
+      localStorage.setItem(KEYS.AUTH_USER, JSON.stringify(updated));
+    } catch {}
+
+    return updated;
   },
 
   // 1. Favorites Management
@@ -745,9 +783,23 @@ export const store = {
     return updated;
   },
 
-  // 3. Listening History
+  // 3. Listening History (Deduplicated with Lift-to-Top)
   async getRecentlyPlayed(): Promise<Track[]> {
     if (typeof window === "undefined") return [];
+
+    const dedup = (items: Track[]): Track[] => {
+      const seen = new Set<string>();
+      const result: Track[] = [];
+      for (const t of items) {
+        if (!isCleanTrack(t)) continue;
+        const key = (t.sourceTrackId || t.id.replace(/^yt_/, "")).toLowerCase();
+        if (!seen.has(key)) {
+          seen.add(key);
+          result.push(t);
+        }
+      }
+      return result;
+    };
 
     let localHistory: Track[] = [];
     try {
@@ -755,7 +807,7 @@ export const store = {
       if (data) {
         const parsed = JSON.parse(data);
         if (Array.isArray(parsed)) {
-          localHistory = parsed.filter(isCleanTrack);
+          localHistory = dedup(parsed);
         }
       }
     } catch {}
@@ -766,12 +818,13 @@ export const store = {
       });
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data.history) && data.history.length > 0) {
+        if (Array.isArray(data.history)) {
+          const serverHistory = dedup(data.history);
           localStorage.setItem(
             KEYS.RECENTLY_PLAYED,
-            JSON.stringify(data.history),
+            JSON.stringify(serverHistory),
           );
-          return data.history;
+          return serverHistory;
         }
       }
     } catch {}
@@ -782,10 +835,15 @@ export const store = {
   async addRecentlyPlayed(track: Track): Promise<Track[]> {
     if (!isCleanTrack(track)) return await store.getRecentlyPlayed();
 
-    // Optimistic local update
+    const trackKey = (track.sourceTrackId || track.id.replace(/^yt_/, "")).toLowerCase();
+
+    // Optimistic local update: lift to top by filtering out any older occurrences
     const list = await store.getRecentlyPlayed();
-    const filtered = list.filter((t) => t.id !== track.id);
-    const updated = [track, ...filtered].slice(0, 30);
+    const filtered = list.filter((t) => {
+      const tKey = (t.sourceTrackId || t.id.replace(/^yt_/, "")).toLowerCase();
+      return t.id !== track.id && tKey !== trackKey;
+    });
+    const updated = [track, ...filtered].slice(0, 40);
 
     try {
       localStorage.setItem(KEYS.RECENTLY_PLAYED, JSON.stringify(updated));

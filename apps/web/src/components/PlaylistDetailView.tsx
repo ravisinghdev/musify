@@ -21,9 +21,13 @@ export interface PlaylistDetailViewProps {
   currentTrackId?: string;
   isPlaying?: boolean;
   favoritesIds: Set<string>;
+  downloadedIds?: Set<string>;
   onPlayTrack: (track: Track, queue: Track[], targetIndex?: number) => void;
   onToggleLike: (track: Track) => void;
   onAddToPlaylist: (track: Track) => void;
+  onDownload?: (track: Track) => void;
+  onSelectArtist?: (artist: any) => void;
+  onSelectAlbum?: (album: any) => void;
   onRemoveTrack?: (track: Track) => void;
   onDeletePlaylist?: () => void;
   onBack: () => void;
@@ -34,9 +38,13 @@ export function PlaylistDetailView({
   playlist,
   currentTrackId,
   favoritesIds,
+  downloadedIds,
   onPlayTrack,
   onToggleLike,
   onAddToPlaylist,
+  onDownload,
+  onSelectArtist,
+  onSelectAlbum,
   onRemoveTrack,
   onDeletePlaylist,
   onBack,
@@ -187,9 +195,13 @@ export function PlaylistDetailView({
                   index={idx}
                   isCurrent={currentTrackId === track.id}
                   isLiked={favoritesIds.has(track.id)}
+                  isDownloaded={downloadedIds?.has(track.id)}
                   onPlay={(t) => onPlayTrack(t, playlist.tracks, idx)}
                   onToggleLike={(t) => onToggleLike(t)}
                   onAddToPlaylist={(t) => onAddToPlaylist(t)}
+                  onDownload={onDownload}
+                  onSelectArtist={onSelectArtist}
+                  onSelectAlbum={onSelectAlbum}
                   onRemove={
                     playlist.isCustom && onRemoveTrack
                       ? (t) => onRemoveTrack(t)

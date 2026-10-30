@@ -114,5 +114,39 @@ export const api = {
 
   getPlaylist: (playlistId: string): Promise<PlaylistDetails> =>
     fetchJson(`${API_BASE}/playlists/${encodeURIComponent(playlistId)}`),
+
+  // AI Smart Queue & Next Song Predictions
+  getAISuggestions: async (
+    currentTrack: Track,
+    queue: Track[] = [],
+    mood: string = "smart",
+    count = 6,
+  ): Promise<Array<{ track: Track; reason: string; badge: string }>> => {
+    try {
+      const res = await fetch(`${API_BASE}/ai/queue-suggestions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentTrack,
+          queue: queue.slice(0, 5),
+          mood,
+          count,
+        }),
+      });
+      if (!res.ok) {
+        // Fallback to queue if AI endpoint fails
+        const fallback = await api.getQueue(currentTrack.id);
+        return (fallback.tracks || []).slice(0, count).map((t) => ({
+          track: t,
+          reason: `Continuously recommended after "${currentTrack.title}"`,
+          badge: "✨ Next Up",
+        }));
+      }
+      const data = await res.json();
+      return Array.isArray(data.suggestions) ? data.suggestions : [];
+    } catch {
+      return [];
+    }
+  },
 };
 

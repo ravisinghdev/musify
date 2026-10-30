@@ -38,7 +38,7 @@ export function AppLogo({
     >
       {/* 3D Glassmorphic Emblem */}
       <div
-        className={`relative shrink-0 overflow-hidden shadow-md shadow-indigo-500/20 border border-white/10 ${iconDimensions.class}`}
+        className={`relative shrink-0 overflow-hidden ${iconDimensions.class}`}
       >
         <img
           src="/icon-192.png"

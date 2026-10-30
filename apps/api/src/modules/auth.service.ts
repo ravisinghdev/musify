@@ -522,41 +522,51 @@ export class AuthService {
    * Resolves current user from Bearer Token or Session Header
    */
   async resolveUser(authToken?: string, sessionIdHeader?: string): Promise<SafeUser> {
-    // 1. Try Bearer JWT token first
-    if (authToken) {
-      const cleanToken = authToken.replace(/^Bearer\s+/i, "").trim();
-      const payload = this.verifyToken(cleanToken);
-      if (payload && payload.sub) {
-        const user = await prisma.userSession.findUnique({
-          where: { id: payload.sub },
-        });
-        if (user) {
-          return this.toSafeUser(user);
+    try {
+      // 1. Try Bearer JWT token first
+      if (authToken) {
+        const cleanToken = authToken.replace(/^Bearer\s+/i, "").trim();
+        const payload = this.verifyToken(cleanToken);
+        if (payload && payload.sub) {
+          const user = await prisma.userSession.findUnique({
+            where: { id: payload.sub },
+          }).catch(() => null);
+          if (user) {
+            return this.toSafeUser(user);
+          }
         }
       }
-    }
 
-    // 2. Try session ID header (Guest / Anonymous user)
-    const cleanSession = sessionIdHeader?.trim();
-    if (cleanSession && /^[a-zA-Z0-9_-]{10,64}$/.test(cleanSession)) {
-      const existing = await prisma.userSession.findUnique({
-        where: { id: cleanSession },
-      });
-      if (existing) {
-        return this.toSafeUser(existing);
+      // 2. Try session ID header (Guest / Anonymous user)
+      const cleanSession = sessionIdHeader?.trim();
+      if (cleanSession && /^[a-zA-Z0-9_-]{10,64}$/.test(cleanSession)) {
+        const existing = await prisma.userSession.findUnique({
+          where: { id: cleanSession },
+        }).catch(() => null);
+        if (existing) {
+          return this.toSafeUser(existing);
+        }
+
+        const created = await prisma.userSession.create({
+          data: { id: cleanSession, isAnonymous: true },
+        }).catch(() => null);
+        if (created) return this.toSafeUser(created);
       }
-
-      const created = await prisma.userSession.create({
-        data: { id: cleanSession, isAnonymous: true },
-      });
-      return this.toSafeUser(created);
+    } catch {
+      // Graceful fallback on connection pressure
     }
 
     // 3. Fallback: create fresh anonymous guest
-    const fresh = await prisma.userSession.create({
-      data: { isAnonymous: true },
-    });
-    return this.toSafeUser(fresh);
+    const guestId = sessionIdHeader || `anon_${Date.now()}`;
+    return {
+      id: guestId,
+      email: null,
+      displayName: "Guest Listener",
+      avatarUrl: null,
+      isAnonymous: true,
+      emailVerified: false,
+      createdAt: new Date().toISOString(),
+    };
   }
 
   /**
@@ -573,7 +583,14 @@ export class AuthService {
       data.displayName = sanitizeText(displayNameRaw, 60) || "User";
     }
     if (avatarUrlRaw !== undefined) {
-      data.avatarUrl = sanitizeText(avatarUrlRaw, 300);
+      if (typeof avatarUrlRaw === "string" && avatarUrlRaw.startsWith("data:image/")) {
+        // Support direct base64 profile picture uploads up to 2.5MB
+        data.avatarUrl = avatarUrlRaw.length <= 2_500_000 ? avatarUrlRaw : avatarUrlRaw.slice(0, 2_500_000);
+      } else if (avatarUrlRaw) {
+        data.avatarUrl = sanitizeText(avatarUrlRaw, 2048);
+      } else {
+        data.avatarUrl = null as any;
+      }
     }
 
     const updated = await prisma.userSession.update({

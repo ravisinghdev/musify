@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import type { Track } from "../types/music";
 
 interface YouTubeAudioEngineProps {
@@ -9,6 +9,7 @@ interface YouTubeAudioEngineProps {
   volume: number;
   isMuted: boolean;
   isRepeat?: boolean;
+  crossfadeSeconds?: number;
   onTimeUpdate: (currentTime: number, duration: number) => void;
   onEnded: () => void;
   onIsPlayingChange: (isPlaying: boolean) => void;
@@ -25,12 +26,27 @@ declare global {
   }
 }
 
+function getTrackVideoId(track: Track | null): string | null {
+  if (!track) return null;
+  if (track.sourceTrackId && track.sourceTrackId.length === 11) {
+    return track.sourceTrackId;
+  }
+  if (track.id.startsWith("yt_") && track.id.length === 14) {
+    return track.id.slice(3);
+  }
+  if (track.id.length === 11) {
+    return track.id;
+  }
+  return null;
+}
+
 export function YouTubeAudioEngine({
   currentTrack,
   isPlaying,
   volume,
   isMuted,
   isRepeat = false,
+  crossfadeSeconds = 3,
   onTimeUpdate,
   onEnded,
   onIsPlayingChange,
@@ -40,8 +56,10 @@ export function YouTubeAudioEngine({
   onPrev,
 }: YouTubeAudioEngineProps) {
   const playerRef = useRef<any>(null);
-  const isReadyRef = useRef(false);
+  const [isPlayerReady, setIsPlayerReady] = useState(false);
   const currentVideoIdRef = useRef<string | null>(null);
+  const currentTrackRef = useRef<Track | null>(currentTrack);
+  const isPlayingRef = useRef<boolean>(isPlaying);
 
   // Dynamic references to eliminate stale closures in YouTube callbacks
   const onEndedRef = useRef(onEnded);
@@ -51,6 +69,8 @@ export function YouTubeAudioEngine({
   const onPrevRef = useRef(onPrev);
 
   useEffect(() => {
+    currentTrackRef.current = currentTrack;
+    isPlayingRef.current = isPlaying;
     onEndedRef.current = onEnded;
     onIsPlayingChangeRef.current = onIsPlayingChange;
     isRepeatRef.current = isRepeat;
@@ -134,13 +154,16 @@ export function YouTubeAudioEngine({
 
     function initPlayer() {
       if (!window.YT || !window.YT.Player) return;
-
       if (playerRef.current) return;
 
+      const trackVid = getTrackVideoId(currentTrackRef.current);
+      // Use selected track video if available, else standard fallback with autoplay: 0
+      const initialVid = trackVid || "xTvyyoF_LZY";
+
       playerRef.current = new window.YT.Player("musify-hidden-yt-player", {
-        height: "1",
-        width: "1",
-        videoId: currentTrack?.sourceTrackId || "xTvyyoF_LZY",
+        height: "200",
+        width: "200",
+        videoId: initialVid,
         playerVars: {
           autoplay: 0,
           controls: 0,
@@ -149,19 +172,48 @@ export function YouTubeAudioEngine({
           modestbranding: 1,
           playsinline: 1,
           rel: 0,
+          enablejsapi: 1,
         },
         events: {
           onReady: (event: any) => {
-            isReadyRef.current = true;
-            event.target.setVolume(isMuted ? 0 : volume * 100);
-            if (isPlaying) {
-              event.target.playVideo();
+            setIsPlayerReady(true);
+            try {
+              event.target.setVolume(isMuted ? 0 : volume * 100);
+            } catch {}
+
+            const activeTrack = currentTrackRef.current;
+            if (activeTrack) {
+              const vid = getTrackVideoId(activeTrack);
+              if (vid) {
+                currentVideoIdRef.current = vid;
+                if (isPlayingRef.current) {
+                  event.target.loadVideoById(vid);
+                  try {
+                    event.target.playVideo();
+                  } catch {}
+                } else {
+                  event.target.cueVideoById(vid);
+                }
+              }
+            } else {
+              // No track selected: guarantee fallback video does NOT play
+              try {
+                event.target.pauseVideo();
+              } catch {}
             }
           },
           onStateChange: (event: any) => {
             // YT.PlayerState: -1 unstarted, 0 ended, 1 playing, 2 paused, 3 buffering, 5 cued
             if (event.data === 1) {
-              onIsPlayingChangeRef.current(true);
+              if (currentTrackRef.current) {
+                onIsPlayingChangeRef.current(true);
+              } else {
+                // Ghost song guard: stop if no track selected
+                try {
+                  event.target.stopVideo();
+                } catch {}
+                onIsPlayingChangeRef.current(false);
+              }
             } else if (event.data === 2) {
               onIsPlayingChangeRef.current(false);
             } else if (event.data === 0) {
@@ -178,10 +230,16 @@ export function YouTubeAudioEngine({
             }
           },
           onError: (err: any) => {
-            console.warn("YouTube player error, advancing queue:", err);
-            setTimeout(() => {
-              onNextRef.current?.();
-            }, 600);
+            console.warn("YouTube player error:", err);
+            // Only advance if a real track failed to embed (codes 101 or 150)
+            if (
+              currentTrackRef.current &&
+              (err?.data === 101 || err?.data === 150)
+            ) {
+              setTimeout(() => {
+                onNextRef.current?.();
+              }, 800);
+            }
           },
         },
       });
@@ -211,85 +269,138 @@ export function YouTubeAudioEngine({
     };
   }, []);
 
-  // Track change
+  // Track change & player ready synchronization
   useEffect(() => {
-    if (!currentTrack || !isReadyRef.current || !playerRef.current) return;
-    const videoId = currentTrack.sourceTrackId;
-    if (!videoId || videoId.length !== 11) return;
+    if (!playerRef.current || !isPlayerReady) return;
+
+    if (!currentTrack) {
+      if (currentVideoIdRef.current) {
+        currentVideoIdRef.current = null;
+        try {
+          playerRef.current.stopVideo?.();
+        } catch {}
+      }
+      return;
+    }
+
+    const videoId = getTrackVideoId(currentTrack);
+    if (!videoId) return;
 
     if (currentVideoIdRef.current !== videoId) {
       currentVideoIdRef.current = videoId;
       try {
         if (isPlaying) {
           playerRef.current.loadVideoById(videoId);
+          try {
+            playerRef.current.playVideo();
+          } catch {}
         } else {
           playerRef.current.cueVideoById(videoId);
         }
       } catch (e) {
         console.error("Failed to load video:", e);
       }
+    } else if (isPlaying) {
+      try {
+        const state = playerRef.current.getPlayerState?.();
+        if (state !== 1 && state !== 3) {
+          playerRef.current.playVideo?.();
+        }
+      } catch {}
     }
-  }, [currentTrack, isPlaying]);
+  }, [currentTrack, isPlaying, isPlayerReady]);
 
-  // Sync play/pause
+  // Sync play/pause state
   useEffect(() => {
-    if (!isReadyRef.current || !playerRef.current) return;
+    if (!isPlayerReady || !playerRef.current) return;
     try {
       const state = playerRef.current.getPlayerState?.();
       if (isPlaying && state !== 1 && state !== 3) {
-        playerRef.current.playVideo();
+        playerRef.current.playVideo?.();
       } else if (!isPlaying && state === 1) {
-        playerRef.current.pauseVideo();
+        playerRef.current.pauseVideo?.();
       }
     } catch {}
-  }, [isPlaying]);
+  }, [isPlaying, isPlayerReady]);
 
   // Sync volume & mute
   useEffect(() => {
-    if (!isReadyRef.current || !playerRef.current) return;
+    if (!isPlayerReady || !playerRef.current) return;
     try {
-      playerRef.current.setVolume(isMuted ? 0 : volume * 100);
+      playerRef.current.setVolume?.(isMuted ? 0 : volume * 100);
       if (isMuted) {
-        playerRef.current.mute();
+        playerRef.current.mute?.();
       } else {
-        playerRef.current.unMute();
+        playerRef.current.unMute?.();
       }
     } catch {}
-  }, [volume, isMuted]);
+  }, [volume, isMuted, isPlayerReady]);
 
   // Sync seek
   useEffect(() => {
-    if (seekToTime === null || !isReadyRef.current || !playerRef.current) return;
+    if (seekToTime === null || !isPlayerReady || !playerRef.current) return;
     try {
-      playerRef.current.seekTo(seekToTime, true);
+      playerRef.current.seekTo?.(seekToTime, true);
       onSeekHandled();
     } catch {}
-  }, [seekToTime, onSeekHandled]);
+  }, [seekToTime, onSeekHandled, isPlayerReady]);
 
   // Time update polling (high-frequency 200ms for silky smooth lyrics sync)
   useEffect(() => {
     const interval = setInterval(() => {
-      if (!isReadyRef.current || !playerRef.current) return;
+      if (!isPlayerReady || !playerRef.current) return;
       try {
         const state = playerRef.current.getPlayerState?.();
         if (state === 1 || state === 3) {
+          if (!currentTrackRef.current) {
+            try {
+              playerRef.current.stopVideo?.();
+            } catch {}
+            return;
+          }
           const curr = playerRef.current.getCurrentTime?.() ?? 0;
           const dur = playerRef.current.getDuration?.() ?? 0;
           onTimeUpdate(curr, dur);
+
+          // Audio Crossfade Volume Transition Curve
+          if (!isMuted && crossfadeSeconds > 0 && dur > crossfadeSeconds * 2) {
+            const baseVol = volume * 100;
+            if (curr < crossfadeSeconds) {
+              // Fade In
+              const fadeRatio = Math.max(0.05, curr / crossfadeSeconds);
+              playerRef.current.setVolume?.(Math.round(baseVol * fadeRatio));
+            } else if (curr > dur - crossfadeSeconds) {
+              // Fade Out
+              const remaining = Math.max(0, dur - curr);
+              const fadeRatio = Math.max(0.05, remaining / crossfadeSeconds);
+              playerRef.current.setVolume?.(Math.round(baseVol * fadeRatio));
+            } else {
+              // Full Volume
+              playerRef.current.setVolume?.(baseVol);
+            }
+          }
         }
       } catch {}
     }, 200);
 
     return () => clearInterval(interval);
-  }, [onTimeUpdate]);
+  }, [onTimeUpdate, isPlayerReady]);
 
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none fixed bottom-0 right-0 h-1 w-1 opacity-[0.001] z-[-1] overflow-hidden"
+      style={{
+        position: "fixed",
+        bottom: "-500px",
+        right: "-500px",
+        width: "200px",
+        height: "200px",
+        opacity: 1,
+        pointerEvents: "none",
+        zIndex: -9999,
+      }}
     >
       <div id="musify-hidden-yt-player" />
     </div>
   );
 }
-

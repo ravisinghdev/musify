@@ -13,6 +13,7 @@ interface LyricsModalProps {
   currentTime?: number;
   duration?: number;
   onSeek?: (seconds: number) => void;
+  fontSize?: "compact" | "normal" | "large";
 }
 
 interface LyricLine {
@@ -29,6 +30,7 @@ export function LyricsModal({
   currentTime = 0,
   duration = 210,
   onSeek,
+  fontSize = "normal",
 }: LyricsModalProps) {
   const activeLineRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -71,7 +73,7 @@ export function LyricsModal({
     // Dynamic phrase-timing fallback for plain lyrics: distribute evenly across track duration
     const cleanLines = rawLines
       .map((l) => l.trim())
-      .filter((l) => l.length > 0 && !/^\[.*\]$/.test(l)); // omit empty lines and bracketed section labels
+      .filter((l) => l.length > 0 && !/^\[.*\]$/.test(l));
     if (cleanLines.length === 0) return null;
 
     const totalDuration =
@@ -101,7 +103,7 @@ export function LyricsModal({
     return idx;
   }, [parsedLyrics, currentTime]);
 
-  // Smoothly scroll active line directly to container center
+  // Smoothly scroll active line directly to container center with graceful easing
   useEffect(() => {
     if (containerRef.current && activeLineRef.current) {
       const container = containerRef.current;
@@ -125,10 +127,24 @@ export function LyricsModal({
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    const fontClass =
+    fontSize === "compact"
+      ? "text-sm sm:text-base"
+      : fontSize === "large"
+      ? "text-lg sm:text-xl md:text-2xl"
+      : "text-base sm:text-lg md:text-xl";
+
+  return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
   if (!isOpen || !track) return null;
+
+  const fontClass =
+    fontSize === "compact"
+      ? "text-sm sm:text-base"
+      : fontSize === "large"
+      ? "text-lg sm:text-xl md:text-2xl"
+      : "text-base sm:text-lg md:text-xl";
 
   return (
     <div
@@ -136,19 +152,19 @@ export function LyricsModal({
       aria-modal="true"
       aria-label="Song lyrics"
       onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-xl animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3 sm:p-4 backdrop-blur-2xl animate-fade-in"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative flex max-h-[85vh] w-full max-w-xl flex-col rounded-3xl border border-white/10 bg-black/60 p-6 shadow-2xl backdrop-blur-2xl sm:p-8"
+        className="relative flex h-[90vh] sm:h-[85vh] w-full max-w-xl flex-col rounded-3xl border border-white/10 bg-black/70 p-5 sm:p-8 shadow-2xl backdrop-blur-3xl overflow-hidden"
       >
-        {/* Ambient Lyric Glow Aura */}
-        <div className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 h-64 w-64 rounded-full bg-indigo-500/20 blur-[100px]" />
+        {/* Soft Ambient Background Aura */}
+        <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-72 w-72 rounded-full bg-indigo-500/15 blur-[120px]" />
 
         {/* Header */}
-        <div className="relative z-10 flex items-center justify-between border-b border-white/[0.08] pb-4">
+        <div className="relative z-10 flex items-center justify-between border-b border-white/[0.08] pb-3 sm:pb-4">
           <div className="min-w-0 pr-4">
-            <h2 className="truncate text-lg font-bold text-white tracking-tight">
+            <h2 className="truncate text-base sm:text-lg font-bold text-white tracking-tight">
               {track.title}
             </h2>
             <p className="truncate text-xs text-zinc-400 mt-0.5">
@@ -158,49 +174,62 @@ export function LyricsModal({
 
           <div className="flex items-center gap-2.5 shrink-0">
             {parsedLyrics && (
-              <span className="flex items-center gap-1.5 rounded-full bg-indigo-500/20 px-2.5 py-0.5 text-[10px] font-semibold text-indigo-300 border border-indigo-500/30">
+              <span className="flex items-center gap-1.5 rounded-full bg-indigo-500/15 px-2.5 py-1 text-[10px] font-semibold text-indigo-300 border border-indigo-500/25">
                 <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse" />
-                Live Karaoke
+                Live Sync
               </span>
             )}
             <button
               onClick={onClose}
               aria-label="Close lyrics"
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 text-zinc-400 transition hover:bg-white/10 hover:text-white"
+              className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl border border-white/10 text-zinc-400 transition hover:bg-white/10 hover:text-white"
             >
-              <Icon name="close" size={18} />
+              <Icon name="close" size={17} />
             </button>
           </div>
         </div>
 
-        {/* Content */}
+        {/* Content with Apple Music-style Soft Edge Masking */}
         <div
           ref={containerRef}
-          className="relative z-10 mt-6 flex-1 overflow-y-auto custom-scrollbar pr-2 text-center"
+          style={{
+            maskImage:
+              "linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)",
+            WebkitMaskImage:
+              "linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)",
+          }}
+          className="relative z-10 mt-2 flex-1 overflow-y-auto custom-scrollbar pr-1 text-center select-none"
         >
           {isLoading ? (
             <div className="flex min-h-[300px] flex-col items-center justify-center gap-3">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-indigo-400 border-t-transparent" />
-              <p className="text-xs text-zinc-400">Fetching lyrics from global library...</p>
+              <p className="text-xs text-zinc-400">Loading lyrics...</p>
             </div>
           ) : parsedLyrics && parsedLyrics.length > 0 ? (
-            /* Time-synced interactive karaoke view */
-            <div className="py-28 space-y-6">
+            /* Time-synced interactive karaoke view with polite, soft, smooth transitions */
+            <div className="py-36 space-y-3 sm:space-y-4">
               {parsedLyrics.map((line, idx) => {
                 const isActive = idx === activeIndex;
                 const isPast = idx < activeIndex;
 
-                return (
+                const fontClass =
+    fontSize === "compact"
+      ? "text-sm sm:text-base"
+      : fontSize === "large"
+      ? "text-lg sm:text-xl md:text-2xl"
+      : "text-base sm:text-lg md:text-xl";
+
+  return (
                   <div
                     key={idx}
                     ref={isActive ? activeLineRef : null}
                     onClick={() => onSeek && onSeek(line.timeSeconds)}
-                    className={`cursor-pointer transition-all duration-300 py-2 px-4 select-none ${
+                    className={`cursor-pointer rounded-2xl py-2 px-3 sm:py-2.5 sm:px-4 ${fontClass} transition-all duration-700 ease-out ${
                       isActive
-                        ? "text-white text-xl sm:text-2xl font-bold scale-[1.04] drop-shadow-[0_0_12px_rgba(255,255,255,0.75)] drop-shadow-[0_0_22px_rgba(165,180,252,0.45)]"
+                        ? "text-white font-semibold opacity-100 bg-white/[0.06] drop-shadow-[0_2px_14px_rgba(255,255,255,0.35)]"
                         : isPast
-                        ? "text-zinc-500 text-base sm:text-lg font-normal opacity-40 hover:opacity-75 hover:text-zinc-300"
-                        : "text-zinc-400 text-base sm:text-lg font-normal opacity-60 hover:opacity-90 hover:text-zinc-200"
+                        ? "text-zinc-500 font-normal opacity-30 hover:opacity-75 hover:text-zinc-300"
+                        : "text-zinc-400 font-normal opacity-50 hover:opacity-85 hover:text-zinc-200"
                     }`}
                   >
                     {line.text}
@@ -210,7 +239,7 @@ export function LyricsModal({
             </div>
           ) : lyrics ? (
             /* Plain styled lyrics view */
-            <div className="py-8 px-4 space-y-4 whitespace-pre-line font-medium leading-relaxed text-zinc-100 text-base sm:text-lg drop-shadow-[0_0_12px_rgba(255,255,255,0.25)]">
+            <div className="py-12 px-4 space-y-4 whitespace-pre-line font-medium leading-relaxed text-zinc-200 text-base sm:text-lg">
               {lyrics}
             </div>
           ) : (
