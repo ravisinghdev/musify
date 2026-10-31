@@ -66,7 +66,11 @@ export default function RootLayout({
               try {
                 Object.defineProperty(document, 'hidden', { get: function() { return false; }, configurable: true });
                 Object.defineProperty(document, 'visibilityState', { get: function() { return 'visible'; }, configurable: true });
-                window.addEventListener('visibilitychange', function(e) { e.stopImmediatePropagation(); }, true);
+                var stopEvt = function(e) { e.stopImmediatePropagation(); };
+                document.addEventListener('visibilitychange', stopEvt, true);
+                window.addEventListener('visibilitychange', stopEvt, true);
+                window.addEventListener('blur', stopEvt, true);
+                window.addEventListener('pagehide', stopEvt, true);
               } catch(e) {}
             `,
           }}

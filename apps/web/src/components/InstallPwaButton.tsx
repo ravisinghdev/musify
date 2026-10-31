@@ -67,13 +67,18 @@ export function InstallPwaButton({
   return (
     <Link
       href="/download"
-      title="Download Musify Native Apps"
-      className={`group flex items-center gap-2 rounded-2xl border border-indigo-500/30 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 px-3 py-1.5 text-xs font-semibold text-indigo-200 backdrop-blur-xl transition hover:border-indigo-400/50 hover:bg-indigo-500/30 hover:text-white active:scale-95 shadow-sm shadow-indigo-500/10 ${className}`}
+      title="Download Musify Native Apps (Android APK & Windows EXE)"
+      className={`group flex items-center gap-1.5 sm:gap-2 rounded-full border border-indigo-400/40 bg-gradient-to-r from-indigo-600/30 via-purple-600/25 to-pink-600/25 px-2.5 sm:px-3.5 py-1.5 text-xs font-semibold text-indigo-100 backdrop-blur-xl transition hover:border-indigo-400 hover:bg-indigo-500/40 hover:text-white active:scale-95 shadow-md shadow-indigo-500/15 ${className}`}
     >
-      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-500/30 text-indigo-300 group-hover:scale-110 transition">
-        <Icon name="download" size={12} />
+      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-indigo-500/40 text-indigo-200 group-hover:scale-110 transition">
+        <Icon name="download" size={13} />
       </div>
-      <span className="hidden xs:inline sm:inline">Get App</span>
+      <span className="text-[11px] sm:text-xs font-bold tracking-tight whitespace-nowrap text-white">
+        Download App
+      </span>
+      <span className="hidden md:inline-block rounded bg-indigo-400/25 px-1 py-0.2 text-[9px] font-mono font-bold text-indigo-200 uppercase">
+        APK
+      </span>
     </Link>
   );
 }

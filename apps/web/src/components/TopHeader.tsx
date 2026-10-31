@@ -234,8 +234,8 @@ export function TopHeader({
           )}
         </div>
 
-        {/* PWA / Android Install Trigger — Hidden on mobile to keep search bar roomy, available in drawer */}
-        <div className="hidden sm:block">
+        {/* Direct Download App Button (Android APK / Windows) — Always visible across mobile & desktop */}
+        <div className="flex items-center shrink-0">
           <InstallPwaButton onShowToast={onShowToast} />
         </div>
 

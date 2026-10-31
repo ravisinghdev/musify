@@ -89,7 +89,7 @@ export default function DownloadPage() {
 
               <div className="flex flex-wrap gap-2 pt-1">
                 <span className="rounded-md bg-white/[0.05] border border-white/5 px-2.5 py-1 text-[11px] text-zinc-400 font-mono">
-                  Size: 4.3 MB
+                  Size: 9.3 MB
                 </span>
                 <span className="rounded-md bg-white/[0.05] border border-white/5 px-2.5 py-1 text-[11px] text-zinc-400 font-mono">
                   v2 Release Signed

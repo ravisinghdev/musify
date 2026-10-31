@@ -107,17 +107,32 @@ public class MainActivity extends BridgeActivity {
                 // Inject MusifyNativeBridge
                 webView.addJavascriptInterface(new MusifyNativeBridge(), "MusifyNativeBridge");
 
-                // Inject Page Visibility API override so backgrounding does not pause HTML5 / YouTube playback
+                // Inject comprehensive Page Visibility API override so backgrounding & screen-off never pause playback
                 String jsSpoof = "(function() {" +
                     "try {" +
                     "  Object.defineProperty(document, 'hidden', { get: function() { return false; }, configurable: true });" +
                     "  Object.defineProperty(document, 'visibilityState', { get: function() { return 'visible'; }, configurable: true });" +
-                    "  window.addEventListener('visibilitychange', function(e) { e.stopImmediatePropagation(); }, true);" +
+                    "  var stopEvt = function(e) { e.stopImmediatePropagation(); };" +
+                    "  document.addEventListener('visibilitychange', stopEvt, true);" +
+                    "  window.addEventListener('visibilitychange', stopEvt, true);" +
+                    "  window.addEventListener('blur', stopEvt, true);" +
+                    "  window.addEventListener('pagehide', stopEvt, true);" +
                     "} catch (e) {}" +
                     "})();";
                 webView.evaluateJavascript(jsSpoof, null);
             }
         } catch (Exception ignored) {}
+    }
+
+    @Override
+    protected void onUserLeaveHint() {
+        super.onUserLeaveHint();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            try {
+                android.app.PictureInPictureParams params = new android.app.PictureInPictureParams.Builder().build();
+                enterPictureInPictureMode(params);
+            } catch (Exception ignored) {}
+        }
     }
 
     @Override

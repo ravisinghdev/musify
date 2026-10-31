@@ -105,9 +105,17 @@ export function YouTubeAudioEngine({
     try {
       Object.defineProperty(document, "hidden", { get: () => false, configurable: true });
       Object.defineProperty(document, "visibilityState", { get: () => "visible", configurable: true });
-      const cancelVisibility = (e: Event) => e.stopImmediatePropagation();
-      window.addEventListener("visibilitychange", cancelVisibility, true);
-      return () => window.removeEventListener("visibilitychange", cancelVisibility, true);
+      const cancelEvt = (e: Event) => e.stopImmediatePropagation();
+      document.addEventListener("visibilitychange", cancelEvt, true);
+      window.addEventListener("visibilitychange", cancelEvt, true);
+      window.addEventListener("blur", cancelEvt, true);
+      window.addEventListener("pagehide", cancelEvt, true);
+      return () => {
+        document.removeEventListener("visibilitychange", cancelEvt, true);
+        window.removeEventListener("visibilitychange", cancelEvt, true);
+        window.removeEventListener("blur", cancelEvt, true);
+        window.removeEventListener("pagehide", cancelEvt, true);
+      };
     } catch {}
   }, []);
 
@@ -579,13 +587,14 @@ export function YouTubeAudioEngine({
       aria-hidden="true"
       style={{
         position: "fixed",
-        bottom: 0,
-        right: 0,
-        width: "200px",
-        height: "200px",
-        opacity: 0.001,
+        top: 0,
+        left: 0,
+        width: "320px",
+        height: "240px",
+        opacity: 1,
+        visibility: "visible",
         pointerEvents: "none",
-        zIndex: -9999,
+        zIndex: -10,
       }}
     >
       <div id="musify-hidden-yt-player" />
