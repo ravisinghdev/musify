@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { AppLogo } from "./AppLogo";
 import { Icon } from "./Icons";
 import { InstallPwaButton } from "./InstallPwaButton";
@@ -47,6 +47,11 @@ export function MobileNavDrawer({
   onOpenSettings,
   navItems = DEFAULT_NAV_ITEMS,
 }: MobileNavDrawerProps) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const handleNavClick = (name: string) => {
     onSelectNav(name);
     onClose();
@@ -129,7 +134,7 @@ export function MobileNavDrawer({
               >
                 <Icon name="clock" size={18} />
                 <span>Recently played</span>
-                {recentlyPlayedCount > 0 && (
+                {mounted && recentlyPlayedCount > 0 && (
                   <span className="ml-auto text-[10px] text-zinc-500 font-mono">
                     {recentlyPlayedCount}
                   </span>
@@ -145,12 +150,12 @@ export function MobileNavDrawer({
                 }`}
               >
                 <Icon
-                  name={favoritesCount > 0 ? "heart-filled" : "heart"}
+                  name={mounted && favoritesCount > 0 ? "heart-filled" : "heart"}
                   size={18}
-                  className={favoritesCount > 0 ? "text-rose-500" : ""}
+                  className={mounted && favoritesCount > 0 ? "text-rose-500" : ""}
                 />
                 <span>Your favorites</span>
-                {favoritesCount > 0 && (
+                {mounted && favoritesCount > 0 && (
                   <span className="ml-auto text-[10px] text-zinc-500 font-mono">
                     {favoritesCount}
                   </span>
@@ -244,7 +249,8 @@ export function MobileNavDrawer({
             </div>
 
             <div className="space-y-1">
-              {playlists.map((pl) => (
+              {mounted &&
+                playlists.map((pl) => (
                 <button
                   key={pl.id}
                   onClick={() => handlePlaylistClick(pl)}

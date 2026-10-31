@@ -64,12 +64,96 @@ export function ListeningStatsView({
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
 
+    // Calculate dynamic streak based on persistent active listening days
+    let streakDays = 0;
+    if (typeof window !== "undefined" && recentlyPlayed.length > 0) {
+      try {
+        const todayStr = new Date().toISOString().slice(0, 10);
+        const storedDaysRaw = localStorage.getItem("musify_listening_days");
+        const daysSet = new Set<string>(storedDaysRaw ? JSON.parse(storedDaysRaw) : []);
+        daysSet.add(todayStr);
+        localStorage.setItem("musify_listening_days", JSON.stringify(Array.from(daysSet)));
+
+        // Count consecutive days backward from today
+        let checkDate = new Date();
+        while (true) {
+          const ds = checkDate.toISOString().slice(0, 10);
+          if (daysSet.has(ds)) {
+            streakDays += 1;
+            checkDate.setDate(checkDate.getDate() - 1);
+          } else {
+            break;
+          }
+        }
+      } catch {
+        streakDays = Math.min(30, Math.max(1, Math.ceil(recentlyPlayed.length / 4)));
+      }
+    }
+
+    // Dynamic Music Taste Persona based on actual track & artist taxonomy
+    const genreBuckets: Record<string, { count: number; color: string }> = {
+      "Bollywood & Desi Chill": { count: 0, color: "from-amber-500 to-orange-500" },
+      "Global Pop & Hits": { count: 0, color: "from-cyan-500 to-blue-500" },
+      "Lo-Fi Ambient & Beats": { count: 0, color: "from-indigo-500 to-purple-500" },
+      "Acoustic & Classical": { count: 0, color: "from-emerald-500 to-teal-500" },
+      "Electronic & Dance": { count: 0, color: "from-fuchsia-500 to-pink-500" },
+      "Rock & Alternative": { count: 0, color: "from-rose-500 to-red-500" },
+    };
+
+    const desiKeywords = ["arijit", "pritam", "shashwat", "armaan", "vishal", "shreya", "badshah", "diljit", "dhillon", "bollywood", "hindi", "punjabi", "atif", "neha", "sonu", "jubin", "sid sriram", "anirudh", "desi", "gehra hua", "ilahi"];
+    const lofiKeywords = ["lofi", "lo-fi", "chill", "sleep", "ambient", "beats", "focus", "study", "relax", "rain", "piano"];
+    const edmKeywords = ["avicii", "garrix", "edm", "dance", "club", "party", "house", "techno", "guetta", "marshmello", "chainsmokers", "remix"];
+    const rockKeywords = ["rock", "metal", "coldplay", "linkin", "queen", "imagine dragons", "nirvana", "muse", "greenday"];
+    const acousticKeywords = ["acoustic", "unplugged", "guitar", "folk", "ed sheeran", "indie", "live", "classical", "strings"];
+
+    let totalCategorized = 0;
+    recentlyPlayed.forEach((t) => {
+      const text = `${t.title} ${t.artists?.map((a) => a.name).join(" ") || ""}`.toLowerCase();
+      if (desiKeywords.some((k) => text.includes(k))) {
+        genreBuckets["Bollywood & Desi Chill"].count += 1;
+        totalCategorized += 1;
+      } else if (lofiKeywords.some((k) => text.includes(k))) {
+        genreBuckets["Lo-Fi Ambient & Beats"].count += 1;
+        totalCategorized += 1;
+      } else if (edmKeywords.some((k) => text.includes(k))) {
+        genreBuckets["Electronic & Dance"].count += 1;
+        totalCategorized += 1;
+      } else if (rockKeywords.some((k) => text.includes(k))) {
+        genreBuckets["Rock & Alternative"].count += 1;
+        totalCategorized += 1;
+      } else if (acousticKeywords.some((k) => text.includes(k))) {
+        genreBuckets["Acoustic & Classical"].count += 1;
+        totalCategorized += 1;
+      } else {
+        genreBuckets["Global Pop & Hits"].count += 1;
+        totalCategorized += 1;
+      }
+    });
+
+    const activeGenres = Object.entries(genreBuckets)
+      .filter(([_, item]) => item.count > 0)
+      .map(([label, item]) => ({
+        label,
+        pct: Math.max(5, Math.round((item.count / Math.max(1, totalCategorized)) * 100)),
+        color: item.color,
+      }))
+      .sort((a, b) => b.pct - a.pct)
+      .slice(0, 4);
+
+    const tasteGenres = activeGenres.length > 0 ? activeGenres : [
+      { label: "Bollywood & Desi Chill", pct: 44, color: "from-amber-500 to-orange-500" },
+      { label: "Global Pop & Hits", pct: 26, color: "from-cyan-500 to-blue-500" },
+      { label: "Lo-Fi Ambient & Beats", pct: 18, color: "from-indigo-500 to-purple-500" },
+      { label: "Acoustic & Classical", pct: 12, color: "from-emerald-500 to-teal-500" },
+    ];
+
     return {
       totalMinutes,
       totalTracks: recentlyPlayed.length,
       topTracks,
       topArtists,
-      streakDays: recentlyPlayed.length > 0 ? 5 : 0,
+      streakDays,
+      tasteGenres,
     };
   }, [recentlyPlayed]);
 
@@ -290,28 +374,7 @@ export function ListeningStatsView({
         </p>
 
         <div className="space-y-3 pt-2">
-          {[
-            {
-              label: "Bollywood & Desi Chill",
-              pct: 44,
-              color: "from-amber-500 to-orange-500",
-            },
-            {
-              label: "Lo-Fi Ambient & Beats",
-              pct: 26,
-              color: "from-indigo-500 to-purple-500",
-            },
-            {
-              label: "Global Pop & Billboard",
-              pct: 18,
-              color: "from-cyan-500 to-blue-500",
-            },
-            {
-              label: "Acoustic & Classical",
-              pct: 12,
-              color: "from-emerald-500 to-teal-500",
-            },
-          ].map((genre) => (
+          {stats.tasteGenres.map((genre) => (
             <div key={genre.label} className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-semibold text-white">{genre.label}</span>

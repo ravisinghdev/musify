@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual, randomBytes, scryptSync } from "crypto";
-import { prisma, sanitizeText } from "./db.service";
+import { prisma, sanitizeText, isDbAvailable, reportDbError } from "./db.service";
 
 interface TokenPayload {
   sub: string; // sessionId
@@ -528,29 +528,80 @@ export class AuthService {
         const cleanToken = authToken.replace(/^Bearer\s+/i, "").trim();
         const payload = this.verifyToken(cleanToken);
         if (payload && payload.sub) {
-          const user = await prisma.userSession.findUnique({
-            where: { id: payload.sub },
-          }).catch(() => null);
-          if (user) {
-            return this.toSafeUser(user);
+          if (isDbAvailable()) {
+            try {
+              const user = await Promise.race([
+                prisma.userSession.findUnique({
+                  where: { id: payload.sub },
+                }),
+                new Promise<null>((_, reject) =>
+                  setTimeout(() => reject(new Error("DB Timeout")), 1200),
+                ),
+              ]).catch((err) => {
+                reportDbError(err);
+                return null;
+              });
+
+              if (user) {
+                return this.toSafeUser(user);
+              }
+            } catch (err) {
+              reportDbError(err);
+            }
           }
+
+          // Fallback: If JWT is cryptographically verified, keep user authenticated
+          return {
+            id: payload.sub,
+            email: (payload as any).email || null,
+            displayName:
+              (payload as any).name ||
+              (payload as any).displayName ||
+              (payload.sub ? `User ${payload.sub.slice(0, 6)}` : "Musify Member"),
+            avatarUrl: (payload as any).avatarUrl || null,
+            isAnonymous: false,
+            emailVerified: Boolean((payload as any).email_verified),
+            createdAt: new Date().toISOString(),
+          };
         }
       }
 
       // 2. Try session ID header (Guest / Anonymous user)
       const cleanSession = sessionIdHeader?.trim();
       if (cleanSession && /^[a-zA-Z0-9_-]{10,64}$/.test(cleanSession)) {
-        const existing = await prisma.userSession.findUnique({
-          where: { id: cleanSession },
-        }).catch(() => null);
-        if (existing) {
-          return this.toSafeUser(existing);
+        if (!isDbAvailable()) {
+          return {
+            id: cleanSession,
+            email: null,
+            displayName: "Guest Listener",
+            avatarUrl: null,
+            isAnonymous: true,
+            emailVerified: false,
+            createdAt: new Date().toISOString(),
+          };
         }
 
-        const created = await prisma.userSession.create({
-          data: { id: cleanSession, isAnonymous: true },
-        }).catch(() => null);
-        if (created) return this.toSafeUser(created);
+        try {
+          const session = await Promise.race([
+            prisma.userSession.upsert({
+              where: { id: cleanSession },
+              update: {},
+              create: { id: cleanSession, isAnonymous: true },
+            }),
+            new Promise<null>((_, reject) =>
+              setTimeout(() => reject(new Error("DB Timeout")), 1200),
+            ),
+          ]).catch(async (err) => {
+            reportDbError(err);
+            return prisma.userSession.findUnique({ where: { id: cleanSession } }).catch(() => null);
+          });
+
+          if (session) {
+            return this.toSafeUser(session);
+          }
+        } catch (err) {
+          reportDbError(err);
+        }
       }
     } catch {
       // Graceful fallback on connection pressure

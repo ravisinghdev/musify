@@ -1,43 +1,101 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AddToPlaylistModal } from "../components/AddToPlaylistModal";
+import dynamic from "next/dynamic";
 import { AudioPlayer } from "../components/AudioPlayer";
-import { AuthModal } from "../components/AuthModal";
-import { CreatePlaylistModal } from "../components/CreatePlaylistModal";
-import { FullscreenVisualizer } from "../components/FullscreenVisualizer";
 import { Icon } from "../components/Icons";
-import { LyricsModal } from "../components/LyricsModal";
 import { MediaCard } from "../components/MediaCard";
 import { MediaSection } from "../components/MediaSection";
 import { MobileNavDrawer } from "../components/MobileNavDrawer";
 import { MobileBottomNav } from "../components/MobileBottomNav";
 import { NowPlayingPanel } from "../components/NowPlayingPanel";
 import {
-  ActivePlaylistView,
+  type ActivePlaylistView,
   PlaylistDetailView,
 } from "../components/PlaylistDetailView";
 import { QueueModal } from "../components/QueueModal";
 import { Sidebar } from "../components/Sidebar";
-import { SleepTimerModal, type SleepTimerDuration } from "../components/SleepTimerModal";
+import type { SleepTimerDuration } from "../components/SleepTimerModal";
 import { ToastContainer, ToastMessage } from "../components/Toast";
 import { TopHeader } from "../components/TopHeader";
 import { TrackRow } from "../components/TrackRow";
-import { UserProfileModal } from "../components/UserProfileModal";
-import { SettingsView } from "../components/SettingsView";
-import { ArtistDetailView } from "../components/ArtistDetailView";
-import { AlbumDetailView } from "../components/AlbumDetailView";
-import { AIHubView } from "../components/AIHubView";
-import { ListeningStatsView } from "../components/ListeningStatsView";
-import { ImportPlaylistModal } from "../components/ImportPlaylistModal";
-import { OfflineLibraryView } from "../components/OfflineLibraryView";
-import { ListeningRoomModal } from "../components/ListeningRoomModal";
 import { YouTubeAudioEngine } from "../components/YouTubeAudioEngine";
 import { TrackActionSheet } from "../components/TrackActionSheet";
+
+// Code-split heavy views & modals to make initial bundle load ultra-fast
+const FullscreenVisualizer = dynamic(
+  () => import("../components/FullscreenVisualizer").then((m) => m.FullscreenVisualizer),
+  { ssr: false },
+);
+const AudioSettingsModal = dynamic(
+  () => import("../components/AudioSettingsModal").then((m) => m.AudioSettingsModal),
+  { ssr: false },
+);
+const SettingsView = dynamic(
+  () => import("../components/SettingsView").then((m) => m.SettingsView),
+  { ssr: false },
+);
+const ArtistDetailView = dynamic(
+  () => import("../components/ArtistDetailView").then((m) => m.ArtistDetailView),
+  { ssr: false },
+);
+const AlbumDetailView = dynamic(
+  () => import("../components/AlbumDetailView").then((m) => m.AlbumDetailView),
+  { ssr: false },
+);
+const AIHubView = dynamic(
+  () => import("../components/AIHubView").then((m) => m.AIHubView),
+  { ssr: false },
+);
+const ListeningStatsView = dynamic(
+  () => import("../components/ListeningStatsView").then((m) => m.ListeningStatsView),
+  { ssr: false },
+);
+const OfflineLibraryView = dynamic(
+  () => import("../components/OfflineLibraryView").then((m) => m.OfflineLibraryView),
+  { ssr: false },
+);
+const ListeningRoomModal = dynamic(
+  () => import("../components/ListeningRoomModal").then((m) => m.ListeningRoomModal),
+  { ssr: false },
+);
+const ImportPlaylistModal = dynamic(
+  () => import("../components/ImportPlaylistModal").then((m) => m.ImportPlaylistModal),
+  { ssr: false },
+);
+const UserProfileModal = dynamic(
+  () => import("../components/UserProfileModal").then((m) => m.UserProfileModal),
+  { ssr: false },
+);
+const AuthModal = dynamic(
+  () => import("../components/AuthModal").then((m) => m.AuthModal),
+  { ssr: false },
+);
+const CreatePlaylistModal = dynamic(
+  () => import("../components/CreatePlaylistModal").then((m) => m.CreatePlaylistModal),
+  { ssr: false },
+);
+const AddToPlaylistModal = dynamic(
+  () => import("../components/AddToPlaylistModal").then((m) => m.AddToPlaylistModal),
+  { ssr: false },
+);
+const LyricsModal = dynamic(
+  () => import("../components/LyricsModal").then((m) => m.LyricsModal),
+  { ssr: false },
+);
+const SleepTimerModal = dynamic(
+  () => import("../components/SleepTimerModal").then((m) => m.SleepTimerModal),
+  { ssr: false },
+);
 import { haptics } from "../lib/haptics";
 import { api } from "../lib/api";
 import { notificationsApi, type AppNotification } from "../lib/notifications";
 import { offlineStore } from "../lib/offlineStore";
+import {
+  FALLBACK_TRACKS,
+  FALLBACK_RECOMMENDATIONS,
+  FALLBACK_EXPLORE_FEED,
+} from "../lib/curatedFallback";
 import {
   CustomPlaylist,
   SafeUser,
@@ -65,34 +123,91 @@ function getDynamicGreeting(): string {
 
 
 
+const VIBE_BANNER_MAP: Record<string, { banner: string; subtitle: string }> = {
+  workout: {
+    banner: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800&auto=format&fit=crop&q=80",
+    subtitle: "High BPM, gym energy & motivation",
+  },
+  focus: {
+    banner: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80",
+    subtitle: "Zero-distraction coding & deep flow",
+  },
+  party: {
+    banner: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&auto=format&fit=crop&q=80",
+    subtitle: "Dance floor anthems & party bangers",
+  },
+  chill: {
+    banner: "https://images.unsplash.com/photo-1518495973542-4542c06a5843?w=800&auto=format&fit=crop&q=80",
+    subtitle: "Lo-Fi, acoustic & peaceful vibes",
+  },
+  bollywood: {
+    banner: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=80",
+    subtitle: "Desi romance & acoustic melodies",
+  },
+  lofi: {
+    banner: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80",
+    subtitle: "Calm beats for flow and focus",
+  },
+  latenight: {
+    banner: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=800&auto=format&fit=crop&q=80",
+    subtitle: "Atmospheric synth & midnight echoes",
+  },
+  gaming: {
+    banner: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&auto=format&fit=crop&q=80",
+    subtitle: "Fast electronic & gaming soundtracks",
+  },
+  acoustic: {
+    banner: "https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=800&auto=format&fit=crop&q=80",
+    subtitle: "Raw unplugged guitar & intimate vocals",
+  },
+  romance: {
+    banner: "https://images.unsplash.com/photo-1518895949257-7621c3c786d7?w=800&auto=format&fit=crop&q=80",
+    subtitle: "Sweet love songs & sunset romance",
+  },
+};
+
 const VIBE_STATIONS = [
   {
     id: "vibe-lofi",
     title: "Lo-Fi Beats & Study",
     query: "Lofi Hip Hop Chill Beats",
-    subtitle: "Calm beats for flow",
-    artwork: "https://i.ytimg.com/vi/jfKfPfyJRdk/hqdefault.jpg",
+    subtitle: "Calm beats for flow and focus",
+    artwork: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80",
   },
   {
     id: "vibe-workout",
     title: "Workout Energy",
     query: "Workout Energy Gym Bangers",
-    subtitle: "Fuel your peak performance",
-    artwork: "https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg",
+    subtitle: "High BPM, gym energy & motivation",
+    artwork: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800&auto=format&fit=crop&q=80",
   },
   {
     id: "vibe-latenight",
     title: "Late Night Drive",
     query: "Late Night Drive Hits",
-    subtitle: "Atmospheric synth & chill",
-    artwork: "https://i.ytimg.com/vi/M4ZoCHID9GI/hqdefault.jpg",
+    subtitle: "Atmospheric synth & midnight echoes",
+    artwork: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=800&auto=format&fit=crop&q=80",
   },
   {
     id: "vibe-deepwork",
     title: "Deep Coding Flow",
     query: "Deep Focus Ambient Instrumental",
-    subtitle: "Zero-distraction electronics",
-    artwork: "https://i.ytimg.com/vi/opwZ_PJ-F_E/hqdefault.jpg",
+    subtitle: "Zero-distraction coding & study",
+    artwork: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "vibe-bollywood",
+    title: "Bollywood Acoustic Chill",
+    query: "Bollywood Acoustic Chill Melodies",
+    subtitle: "Desi romance & acoustic guitars",
+    artwork: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "vibe-party",
+    title: "Weekend Party & EDM",
+    query: "Club Dance Party Hits",
+    subtitle: "Dance floor anthems & party bangers",
+    artwork: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&auto=format&fit=crop&q=80",
   },
 ];
 
@@ -103,14 +218,15 @@ export default function Home() {
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [greeting, setGreeting] = useState("GOOD EVENING");
 
-  // Dynamic API state
+  // Dynamic API state with instant 0ms fallback hydration
   const [recommendations, setRecommendations] =
-    useState<SearchRecommendations | null>(null);
+    useState<SearchRecommendations>(FALLBACK_RECOMMENDATIONS);
   const [searchResults, setSearchResults] = useState<Track[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [exploreFeed, setExploreFeed] = useState<ExploreFeed | null>(null);
+  const [exploreFeed, setExploreFeed] =
+    useState<ExploreFeed>(FALLBACK_EXPLORE_FEED);
   const [isLoadingExplore, setIsLoadingExplore] = useState(false);
 
   // Synchronized Audio Player State (Single source of truth)
@@ -124,6 +240,10 @@ export default function Home() {
   const [isMuted, setIsMuted] = useState(false);
   const [isShuffle, setIsShuffle] = useState(false);
   const [isRepeat, setIsRepeat] = useState(false);
+  const [repeatMode, setRepeatMode] = useState<"off" | "all" | "one">("off");
+  const [bufferedFraction, setBufferedFraction] = useState(0);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
+  const [showAudioSettingsModal, setShowAudioSettingsModal] = useState(false);
   const [seekToTime, setSeekToTime] = useState<number | null>(null);
 
   // Active Playlist detail view
@@ -134,11 +254,10 @@ export default function Home() {
   const [queue, setQueue] = useState<Track[]>([]);
   const [queueIndex, setQueueIndex] = useState(-1);
 
-  // Database-ready local state
+  // Database-ready local state with instant client hydration
   const [favorites, setFavorites] = useState<Track[]>([]);
   const [recentlyPlayed, setRecentlyPlayed] = useState<Track[]>([]);
-  const [customPlaylists, setCustomPlaylists] =
-    useState<CustomPlaylist[]>([]);
+  const [customPlaylists, setCustomPlaylists] = useState<CustomPlaylist[]>([]);
 
   // Right Panel & Lyrics State
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
@@ -304,12 +423,50 @@ export default function Home() {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
 
+  const addInAppNotification = useCallback(
+    (
+      type: AppNotification["type"],
+      title: string,
+      message: string,
+      artworkUrl?: string,
+    ) => {
+      const newNotif: AppNotification = {
+        id: `notif_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        type,
+        title,
+        message,
+        artworkUrl,
+        isRead: false,
+        isSystem: false,
+        createdAt: new Date().toISOString(),
+      };
+      setNotifications((prev) => {
+        const updated = [newNotif, ...prev.slice(0, 49)];
+        try {
+          localStorage.setItem(
+            "musify_notifications_cache",
+            JSON.stringify(updated),
+          );
+        } catch {}
+        return updated;
+      });
+    },
+    [],
+  );
+
   const loadNotifications = useCallback(async (silent = false) => {
     if (!silent) setNotificationsLoading(true);
     try {
       const token = store.getSessionToken();
       const data = await notificationsApi.fetch(token);
-      setNotifications(data);
+      if (Array.isArray(data) && data.length > 0) {
+        setNotifications(data);
+      } else if (typeof window !== "undefined") {
+        try {
+          const cached = localStorage.getItem("musify_notifications_cache");
+          if (cached) setNotifications(JSON.parse(cached));
+        } catch {}
+      }
     } catch {
       // Non-blocking
     } finally {
@@ -473,7 +630,6 @@ export default function Home() {
       queueRef.current = updated;
       return updated;
     });
-    haptics.success();
     showToast("Playing Next", track.title, "success");
   }, [showToast]);
 
@@ -483,7 +639,6 @@ export default function Home() {
       queueRef.current = updated;
       return updated;
     });
-    haptics.success();
     setAiQueueSuggestions((prev) => prev.filter((item) => item.track.id !== track.id));
     showToast("Added to Queue", track.title, "success");
   }, [showToast]);
@@ -567,7 +722,52 @@ export default function Home() {
     queueRef.current = retained;
     setQueueIndex(retained.length > 0 ? 0 : -1);
     queueIndexRef.current = retained.length > 0 ? 0 : -1;
+    showToast("Queue Cleared", "Upcoming tracks cleared", "info");
   };
+
+  const handleShuffleQueue = useCallback(() => {
+    if (queue.length <= 1) return;
+    setQueue((prevQueue) => {
+      const cur = currentTrack ? prevQueue.find((t) => t.id === currentTrack.id) : null;
+      const rest = prevQueue.filter((t) => !cur || t.id !== cur.id);
+      for (let i = rest.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [rest[i], rest[j]] = [rest[j], rest[i]];
+      }
+      const shuffled = cur ? [cur, ...rest] : rest;
+      setQueueIndex(cur ? 0 : 0);
+      queueRef.current = shuffled;
+      showToast("Queue Shuffled", "Up next tracks randomized 🔀", "info");
+      return shuffled;
+    });
+  }, [queue.length, currentTrack, showToast]);
+
+  const handleSaveQueueAsPlaylist = useCallback(() => {
+    if (queue.length === 0 && !currentTrack) {
+      showToast("Queue Empty", "Nothing to save in queue", "info");
+      return;
+    }
+    const allTracks = currentTrack
+      ? [currentTrack, ...queue.filter((t) => t.id !== currentTrack.id)]
+      : queue;
+    const newPlaylist: CustomPlaylist = {
+      id: `pl_${Date.now()}`,
+      name: `Queue Mix (${new Date().toLocaleDateString(undefined, { month: "short", day: "numeric" })})`,
+      description: `Saved from active play queue (${allTracks.length} tracks)`,
+      artwork: allTracks[0]?.artworkUrl,
+      tracks: allTracks,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    setCustomPlaylists((prev) => {
+      const updated = [newPlaylist, ...prev];
+      try {
+        localStorage.setItem("musify_custom_playlists", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+    showToast("Playlist Created", `Saved "${newPlaylist.name}" with ${allTracks.length} tracks`, "success");
+  }, [queue, currentTrack, showToast]);
 
   // Android & Mobile Browser Hardware Back Button Handler
   // Closes open overlays gracefully before navigating away
@@ -575,6 +775,7 @@ export default function Home() {
     const hasOpenModal =
       showFullscreenVisualizer ||
       showQueueModal ||
+      showAudioSettingsModal ||
       showLyrics ||
       showAuthModal ||
       showCreatePlaylistModal ||
@@ -635,7 +836,18 @@ export default function Home() {
 
   // Load database/storage, user & notifications on mount + live poll
   useEffect(() => {
-    store.getMe().then(setAuthUser);
+    // 1. Immediately hydrate from local storage on client mount (0ms)
+    const localFavs = store.getLocalFavorites();
+    if (localFavs.length > 0) setFavorites(localFavs);
+    const localHistory = store.getLocalRecentlyPlayed();
+    if (localHistory.length > 0) setRecentlyPlayed(localHistory);
+    const localPls = store.getLocalPlaylists();
+    if (localPls.length > 0) setCustomPlaylists(localPls);
+    const localUser = store.getStoredUser();
+    if (localUser) setAuthUser(localUser);
+
+    // 2. Revalidate from server in background
+    store.getMe(setAuthUser).then(setAuthUser);
     store.getFavorites().then(setFavorites);
     store.getRecentlyPlayed().then(setRecentlyPlayed);
     store.getPlaylists().then(setCustomPlaylists);
@@ -918,7 +1130,7 @@ export default function Home() {
       showToast("Sleep Timer", "Track ended. Playback paused. 🌙", "info");
       return;
     }
-    if (isRepeat) {
+    if (repeatMode === "one" || isRepeat) {
       handleSeek(0);
       setIsPlaying(true);
       return;
@@ -934,16 +1146,20 @@ export default function Home() {
       return;
     }
     handleNextTrack();
-  }, [isRepeat, handleSeek, handleNextTrack, aiQueueSuggestions, handlePlayTrack, showToast]);
+  }, [repeatMode, isRepeat, handleSeek, handleNextTrack, aiQueueSuggestions, handlePlayTrack, showToast]);
 
   // Toggle Shuffle
   const handleToggleShuffle = useCallback(() => {
     setIsShuffle((prev) => !prev);
   }, []);
 
-  // Toggle Repeat/Loop
+  // Toggle Repeat/Loop: 3-state cycle (off -> all -> one -> off)
   const handleToggleRepeat = useCallback(() => {
-    setIsRepeat((prev) => !prev);
+    setRepeatMode((prev) => {
+      const next = prev === "off" ? "all" : prev === "all" ? "one" : "off";
+      setIsRepeat(next !== "off");
+      return next;
+    });
   }, []);
 
   // Close / Dismiss Player Dock & Stop Playback
@@ -981,6 +1197,18 @@ export default function Home() {
           break;
         case "KeyL":
           setShowLyrics((prev) => !prev);
+          break;
+        case "KeyQ":
+          e.preventDefault();
+          setShowQueueModal((prev) => !prev);
+          break;
+        case "KeyF":
+          e.preventDefault();
+          setShowFullscreenVisualizer((prev) => !prev);
+          break;
+        case "KeyE":
+          e.preventDefault();
+          setShowAudioSettingsModal((prev) => !prev);
           break;
         case "KeyS":
           setIsShuffle((prev) => !prev);
@@ -1305,6 +1533,9 @@ export default function Home() {
       }
       if (unique.length >= 8) break;
     }
+    if (unique.length === 0) {
+      return FALLBACK_TRACKS.slice(0, 8);
+    }
     return unique;
   }, [recentlyPlayed, recommendations, exploreFeed]);
 
@@ -1324,7 +1555,7 @@ export default function Home() {
     if (exploreTracks.length > 0) {
       return exploreTracks.filter(store.isCleanTrack).slice(0, 12);
     }
-    return [];
+    return FALLBACK_TRACKS.slice(0, 12);
   }, [recommendations, exploreFeed]);
 
   const dynamicArtists = useMemo(() => {
@@ -1377,10 +1608,16 @@ export default function Home() {
         volume={volume}
         isMuted={isMuted}
         isRepeat={isRepeat}
+        repeatMode={repeatMode}
+        playbackSpeed={playbackSpeed}
         crossfadeSeconds={settings.crossfadeSeconds}
-        onTimeUpdate={(curr, dur) => {
+        equalizerEnabled={settings.equalizerEnabled}
+        equalizerBands={settings.equalizerBands}
+        equalizerPreset={settings.equalizerPreset}
+        onTimeUpdate={(curr, dur, loadedFrac) => {
           setCurrentTime(curr);
           if (dur > 0) setDuration(dur);
+          if (loadedFrac !== undefined) setBufferedFraction(loadedFrac);
         }}
         onEnded={handleTrackEnded}
         onIsPlayingChange={setIsPlaying}
@@ -1390,13 +1627,7 @@ export default function Home() {
         onPrev={handlePrevTrack}
       />
 
-      <div
-        className={`flex flex-1 min-h-0 w-full max-w-[1920px] mx-auto overflow-hidden transition-all duration-300 ${
-          currentTrack && isPlaying
-            ? "pb-[118px] sm:pb-[96px]"
-            : "pb-[54px] lg:pb-0"
-        }`}
-      >
+      <div className="flex flex-1 min-h-0 w-full max-w-[1920px] mx-auto overflow-hidden">
         {/* Modular Left Desktop Sidebar */}
         <Sidebar
           activeNav={active}
@@ -1436,7 +1667,7 @@ export default function Home() {
         />
 
         {/* Center Main Content Feed */}
-        <section className="min-w-0 flex-1 h-full overflow-y-auto custom-scrollbar px-4 pb-12 sm:px-8 lg:px-9 pt-[calc(env(safe-area-inset-top,0px)+24px)] lg:pt-0">
+        <section className={`min-w-0 flex-1 h-full overflow-y-auto custom-scrollbar px-4 sm:px-8 lg:px-9 pt-0 ${currentTrack ? "pb-32 sm:pb-36" : "pb-12"}`}>
           {/* Modular Top Header */}
           <TopHeader
             query={query}
@@ -1472,8 +1703,8 @@ export default function Home() {
             <div className="py-6 space-y-6 animate-fade-in max-w-4xl mx-auto">
               {/* Floating Pill Search Bar */}
               <div className="relative w-full max-w-2xl mx-auto">
-                <label className="flex w-full items-center gap-3.5 rounded-full border border-white/20 bg-white/[0.06] backdrop-blur-2xl px-5 py-3.5 shadow-[0_10px_35px_rgba(0,0,0,0.5)] focus-within:border-purple-500/60 focus-within:bg-white/[0.09] transition-all">
-                  <Icon name="search" size={19} className="text-zinc-400 shrink-0" />
+                <label className="flex w-full items-center gap-3.5 rounded-full border border-white/20 bg-white/[0.06] backdrop-blur-2xl px-5 py-3.5 shadow-none focus-within:border-[#A5A9FF]/60 focus-within:bg-[#1A1D28]/80 transition-all">
+                  <Icon name="search" size={19} className="text-[#A1A4B2] shrink-0" />
                   <input
                     ref={searchInputRef}
                     value={query}
@@ -1488,7 +1719,7 @@ export default function Home() {
                       }
                     }}
                     placeholder="Search songs, artists, albums, or playlists..."
-                    className="w-full min-w-0 bg-transparent text-sm sm:text-base text-white outline-none placeholder:text-zinc-500 font-medium"
+                    className="w-full min-w-0 bg-transparent text-sm sm:text-base text-[#F5F5F7] outline-none placeholder:text-[#686C7B] font-medium"
                   />
                   {query && (
                     <button
@@ -1498,7 +1729,7 @@ export default function Home() {
                         setSearchResults([]);
                         setShowSuggestions(false);
                       }}
-                      className="flex h-7 w-7 items-center justify-center text-xs text-zinc-400 hover:text-white transition rounded-full hover:bg-white/10 active:scale-90"
+                      className="flex h-7 w-7 items-center justify-center text-xs text-[#A1A4B2] hover:text-[#F5F5F7] transition rounded-full hover:bg-white/10 active:scale-90"
                     >
                       <Icon name="close" size={15} />
                     </button>
@@ -1507,10 +1738,10 @@ export default function Home() {
 
                 {/* Autocomplete Suggestions Dropdown */}
                 {showSuggestions && suggestions.length > 0 && (
-                  <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-white/15 bg-[#0a0d16]/95 p-2 shadow-[0_20px_50px_rgba(0,0,0,0.95)] backdrop-blur-3xl animate-fade-in max-h-80 overflow-y-auto custom-scrollbar">
-                    <div className="px-3 py-1.5 text-[10px] font-semibold text-zinc-500 uppercase tracking-wider flex items-center justify-between border-b border-white/5 mb-1">
+                  <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-white/[0.10] bg-[#12141C]/95 p-2 shadow-[0_20px_50px_rgba(0,0,0,0.95)] backdrop-blur-3xl animate-fade-in max-h-80 overflow-y-auto custom-scrollbar">
+                    <div className="px-3 py-1.5 text-[10px] font-semibold text-[#686C7B] uppercase tracking-wider flex items-center justify-between border-b border-white/5 mb-1">
                       <span>Instant Suggestions</span>
-                      <span className="text-[9px] text-zinc-600">Press Esc to dismiss</span>
+                      <span className="text-[9px] text-[#686C7B]">Press Esc to dismiss</span>
                     </div>
                     {suggestions.map((item) => (
                       <button
@@ -1519,15 +1750,15 @@ export default function Home() {
                           handleSelectQuery(item);
                           setShowSuggestions(false);
                         }}
-                        className="group flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-zinc-200 transition hover:bg-white/10 hover:text-white active:scale-[0.99]"
+                        className="group flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-[#A1A4B2] transition hover:bg-white/10 hover:text-[#F5F5F7] active:scale-[0.99]"
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-400 group-hover:bg-purple-500/20 group-hover:text-purple-300 transition shrink-0">
+                          <div className="flex h-7 w-7 items-center justify-center rounded-lg text-[#686C7B] group-hover:bg-[#292B4B] group-hover:text-[#A5A9FF] transition shrink-0">
                             <Icon name="search" size={14} />
                           </div>
                           <span className="truncate">{item}</span>
                         </div>
-                        <span className="text-[10px] text-zinc-500 opacity-0 group-hover:opacity-100 transition shrink-0">
+                        <span className="text-[10px] text-[#686C7B] opacity-0 group-hover:opacity-100 transition shrink-0">
                           Search ↵
                         </span>
                       </button>
@@ -1541,16 +1772,16 @@ export default function Home() {
                 <div className="space-y-4 pt-2">
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                      <p className="text-[11px] sm:text-xs uppercase tracking-[2px] text-zinc-500 font-semibold">
+                      <p className="text-[11px] sm:text-xs uppercase tracking-[2px] text-[#686C7B] font-semibold">
                         SEARCH RESULTS
                       </p>
-                      <h1 className="mt-0.5 sm:mt-1 text-lg sm:text-2xl font-bold text-white truncate">
+                      <h1 className="mt-0.5 sm:mt-1 text-lg sm:text-2xl font-bold text-[#F5F5F7] truncate">
                         Results for &ldquo;{debouncedQuery}&rdquo;
                       </h1>
                     </div>
                     {isSearching && (
-                      <div className="flex items-center gap-2 text-xs text-zinc-400 shrink-0">
-                        <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-purple-400 border-t-transparent" />
+                      <div className="flex items-center gap-2 text-xs text-[#A1A4B2] shrink-0">
+                        <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#A5A9FF] border-t-transparent" />
                         <span className="hidden xs:inline">Searching...</span>
                       </div>
                     )}
@@ -1602,7 +1833,7 @@ export default function Home() {
                           <button
                             key={item}
                             onClick={() => handleSelectQuery(item)}
-                            className="rounded-full border border-white/[0.08] bg-white/[0.035] px-4 py-2 text-xs font-medium text-zinc-300 transition hover:border-purple-500/30 hover:bg-purple-500/10 hover:text-white"
+                            className="rounded-full border border-white/[0.08] bg-white/[0.035] px-4 py-2 text-xs font-medium text-[#A1A4B2] transition hover:border-[#A5A9FF]/30 hover:bg-[#292B4B]/60 hover:text-[#F5F5F7]"
                           >
                             {item}
                           </button>
@@ -1804,6 +2035,8 @@ export default function Home() {
                                   <img
                                     src={pl.artworkUrl}
                                     alt={pl.title}
+                                    loading="lazy"
+                                    decoding="async"
                                     className="h-full w-full object-cover"
                                   />
                                 ) : (
@@ -1981,6 +2214,36 @@ export default function Home() {
           {/* VIEW: Home Feed (Default) */}
           {active === "Home" && !debouncedQuery && (
             <div className="space-y-8 animate-fade-in pb-12">
+              {/* Dynamic Studio Greeting & Hi-Fi Status */}
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 pt-1">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="flex h-2 w-2 rounded-full bg-[#70D6A0] animate-pulse" />
+                    <span className="text-[10px] font-mono uppercase tracking-[2px] text-[#A5A9FF] font-semibold">
+                      LOSSLESS AUDIO ENGINE • 24-BIT / 96KHZ
+                    </span>
+                  </div>
+                  <h1 className="text-2xl sm:text-4xl font-black text-[#F5F5F7] tracking-tight">
+                    {(() => {
+                      const h = new Date().getHours();
+                      if (h < 12) return "Good morning";
+                      if (h < 17) return "Good afternoon";
+                      if (h < 21) return "Good evening";
+                      return "Late Night Resonance";
+                    })()}
+                  </h1>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs text-[#A1A4B2]">
+                  <span className="rounded-full border border-white/[0.10] bg-[#12141C]/60 px-3 py-1 font-medium">
+                    {favorites.length} saved songs
+                  </span>
+                  <span className="rounded-full border border-white/[0.10] bg-[#12141C]/60 px-3 py-1 font-medium">
+                    {customPlaylists.length} playlists
+                  </span>
+                </div>
+              </div>
+
               {/* Category / Genre Filter Pills */}
               <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 custom-scrollbar">
                 {[
@@ -2001,10 +2264,10 @@ export default function Home() {
                         setActive("Search");
                       }
                     }}
-                    className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-semibold transition active:scale-95 ${
+                    className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-semibold transition active:scale-95 shadow-none ${
                       activeFilterChip === chip.id
-                        ? "bg-white text-zinc-950 shadow-md font-bold"
-                        : "border border-white/10 bg-white/[0.04] text-zinc-300 hover:bg-white/[0.08] hover:text-white"
+                        ? "bg-[#A5A9FF] text-[#090A0F] font-bold"
+                        : "border border-white/10 bg-[#12141C]/80 text-[#A1A4B2] hover:bg-[#1A1D28] hover:text-[#F5F5F7]"
                     }`}
                   >
                     {chip.label}
@@ -2012,28 +2275,34 @@ export default function Home() {
                 ))}
               </div>
 
-              {/* Dynamic Daylist Banner */}
-              <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#0d0f17] p-5 sm:p-7 shadow-xl group">
-                <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="space-y-1.5">
+              {/* Bento Grid: Featured Daylist & Studio Spotlight */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                {/* Main Hero Card: Dynamic Daylist (spans 2 cols on lg) */}
+                <div className="lg:col-span-2 relative overflow-hidden rounded-3xl border border-white/[0.08] bg-[#12141C]/90 p-5 sm:p-7 shadow-2xl group flex flex-col justify-between">
+                  <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-[#A5A9FF]/10 via-[#292B4B]/20 to-transparent rounded-full blur-3xl pointer-events-none" />
+
+                  <div className="relative z-10 space-y-2">
                     <div className="flex items-center gap-2">
-                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#292B4B] text-[#A5A9FF] border border-[#A5A9FF]/30">
                         <Icon name="sparkles" size={11} />
                       </span>
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-purple-400">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-[#A5A9FF]">
                         {daylistVibe.badge}
+                      </span>
+                      <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[9px] font-mono text-[#A1A4B2]">
+                        UPDATED HOURLY
                       </span>
                     </div>
 
-                    <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                    <h2 className="text-xl sm:text-3xl font-black text-[#F5F5F7] tracking-tight">
                       {daylistVibe.title}
                     </h2>
-                    <p className="text-xs text-zinc-300 max-w-xl">
+                    <p className="text-xs sm:text-sm text-[#A1A4B2] max-w-xl leading-relaxed">
                       {daylistVibe.subtitle}
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2.5 shrink-0">
+                  <div className="relative z-10 flex items-center gap-3 pt-6 mt-auto">
                     <button
                       onClick={() => {
                         if (quickPicksTracks.length > 0) {
@@ -2042,24 +2311,84 @@ export default function Home() {
                           handlePlayTrack(trendingTracks[0], trendingTracks, 0);
                         }
                       }}
-                      className="flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-xs font-bold text-zinc-950 hover:bg-zinc-200 transition active:scale-95 shadow-md"
+                      className="flex items-center gap-2.5 rounded-full bg-[#F5F5F7] px-6 py-3 text-xs font-bold text-[#090A0F] hover:bg-white transition active:scale-95 shadow-[0_4px_20px_rgba(165,169,255,0.3)] hover:scale-105"
                     >
-                      <Icon name="play" size={13} />
+                      <Icon name="play" size={14} />
                       <span>Play Daylist</span>
                     </button>
 
                     <button
                       onClick={() => setActive("AI Hub")}
-                      className="flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/10 transition active:scale-95"
+                      className="flex items-center gap-2 rounded-full border border-white/15 bg-[#1A1D28]/80 px-4 py-3 text-xs font-semibold text-[#F5F5F7] hover:bg-[#25283A] transition active:scale-95 hover:border-[#A5A9FF]/30"
                     >
-                      <Icon name="sparkles" size={13} className="text-purple-400" />
-                      <span>AI Hub</span>
+                      <Icon name="sparkles" size={13} className="text-[#A5A9FF]" />
+                      <span>AI Music Studio</span>
                     </button>
+                  </div>
+                </div>
+
+                {/* Secondary Spotlight Card: Lossless Master Highlight */}
+                <div className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-[#12141C]/90 p-5 shadow-2xl flex flex-col justify-between group">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono uppercase tracking-[1.5px] text-[#A5A9FF] font-bold">
+                        STUDIO SPOTLIGHT
+                      </span>
+                      <span className="flex h-2 w-2 rounded-full bg-[#A5A9FF] shadow-[0_0_8px_rgba(165,169,255,0.8)]" />
+                    </div>
+
+                    {trendingTracks.length > 0 && (
+                      <div className="flex items-center gap-3.5 pt-1">
+                        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-[#1A1D28] shadow-md group-hover:scale-105 transition duration-300">
+                          {trendingTracks[0].artworkUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={trendingTracks[0].artworkUrl}
+                              alt={trendingTracks[0].title}
+                              loading="lazy"
+                              decoding="async"
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-[#686C7B]">
+                              <Icon name="music" size={20} />
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-bold text-[#F5F5F7] group-hover:text-[#A5A9FF] transition">
+                            {trendingTracks[0].title}
+                          </p>
+                          <p className="truncate text-xs text-[#A1A4B2] mt-0.5">
+                            {trendingTracks[0].artists.map((a) => a.name).join(", ")}
+                          </p>
+                          <span className="mt-1.5 inline-block text-[9px] font-mono text-[#70D6A0] bg-[#70D6A0]/10 border border-[#70D6A0]/20 px-2 py-0.2 rounded">
+                            FLAC MASTER
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="pt-4 mt-auto border-t border-white/[0.06] flex items-center justify-between">
+                    <span className="text-[11px] text-[#686C7B]">
+                      Trending #1 Worldwide
+                    </span>
+                    {trendingTracks.length > 0 && (
+                      <button
+                        onClick={() => handlePlayTrack(trendingTracks[0], trendingTracks, 0)}
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-[#A5A9FF] text-[#090A0F] shadow-md hover:scale-105 active:scale-95 transition"
+                        aria-label="Play spotlight track"
+                      >
+                        <Icon name="play" size={14} />
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
 
-              {/* Quick Picks / Jump Back In */}
+              {/* Quick Picks / Jump Back In — Compact Matrix */}
               {quickPicksTracks.length > 0 && (
                 <section>
                   <div className="mb-3.5 flex items-center justify-between">
@@ -2067,9 +2396,9 @@ export default function Home() {
                       <Icon
                         name="sparkles"
                         size={15}
-                        className="text-indigo-400"
+                        className="text-[#A5A9FF]"
                       />
-                      <h2 className="text-xs font-semibold uppercase tracking-[1.5px] text-zinc-400">
+                      <h2 className="text-xs font-bold uppercase tracking-[1.5px] text-[#A1A4B2]">
                         Quick Picks
                       </h2>
                     </div>
@@ -2081,21 +2410,20 @@ export default function Home() {
                         <div
                           key={`${t.id}-${idx}`}
                           onClick={() => {
-                            haptics.light();
                             handlePlayTrack(t, quickPicksTracks, idx);
                           }}
                           onContextMenu={(e) => {
                             e.preventDefault();
-                            haptics.heavy();
+                            haptics.light();
                             setSelectedContextTrack(t);
                           }}
-                          className={`group relative flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-[#0d1018]/85 p-2.5 sm:p-3 transition-all duration-200 hover:border-white/20 hover:bg-[#141824] hover:shadow-lg active:scale-[0.98] cursor-pointer select-none touch-pan-y ${
+                          className={`group relative flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-[#12141C]/80 p-2.5 sm:p-3 transition-all duration-200 hover:border-[#A5A9FF]/30 hover:bg-[#1A1D28] hover:shadow-lg active:scale-[0.98] cursor-pointer select-none touch-pan-y ${
                             isCur
-                              ? "border-indigo-500/50 bg-indigo-500/15 shadow-indigo-500/10 shadow-lg"
+                              ? "border-[#A5A9FF]/50 bg-[#292B4B]/50 shadow-[0_0_16px_rgba(165,169,255,0.15)]"
                               : ""
                           }`}
                         >
-                          <div className="relative h-12 w-12 sm:h-13 sm:w-13 shrink-0 overflow-hidden rounded-xl bg-zinc-800 shadow-sm">
+                          <div className="relative h-12 w-12 sm:h-13 sm:w-13 shrink-0 overflow-hidden rounded-xl bg-[#1A1D28] border border-white/[0.06] shadow-sm">
                             {t.artworkUrl || t.sourceTrackId ? (
                               // eslint-disable-next-line @next/next/no-img-element
                               <img
@@ -2104,6 +2432,8 @@ export default function Home() {
                                   `https://i.ytimg.com/vi/${t.sourceTrackId}/hqdefault.jpg`
                                 }
                                 alt={t.title}
+                                loading="lazy"
+                                decoding="async"
                                 onError={(e) => {
                                   if (t.sourceTrackId) {
                                     (e.currentTarget as HTMLImageElement).src = `https://i.ytimg.com/vi/${t.sourceTrackId}/hqdefault.jpg`;
@@ -2112,16 +2442,16 @@ export default function Home() {
                                 className="h-full w-full object-cover transition group-hover:scale-105"
                               />
                             ) : (
-                              <div className="flex h-full w-full items-center justify-center text-zinc-500">
+                              <div className="flex h-full w-full items-center justify-center text-[#686C7B]">
                                 <Icon name="music" size={18} />
                               </div>
                             )}
                             {isCur && isPlaying && (
-                              <div className="absolute inset-0 flex items-center justify-center bg-black/45 backdrop-blur-[1px]">
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-[1px]">
                                 <div className="flex items-end gap-[2px] h-3.5">
-                                  <span className="w-[2px] bg-white rounded-full equalizer-bar-1" />
-                                  <span className="w-[2px] bg-white rounded-full equalizer-bar-2" />
-                                  <span className="w-[2px] bg-white rounded-full equalizer-bar-3" />
+                                  <span className="w-[2px] bg-[#A5A9FF] rounded-full equalizer-bar-1 shadow-[0_0_6px_rgba(165,169,255,0.8)]" />
+                                  <span className="w-[2px] bg-[#A5A9FF] rounded-full equalizer-bar-2 shadow-[0_0_6px_rgba(165,169,255,0.8)]" />
+                                  <span className="w-[2px] bg-[#A5A9FF] rounded-full equalizer-bar-3 shadow-[0_0_6px_rgba(165,169,255,0.8)]" />
                                 </div>
                               </div>
                             )}
@@ -2129,13 +2459,13 @@ export default function Home() {
                           <div className="min-w-0 flex-1 pr-1">
                             <p
                               className={`truncate text-xs sm:text-sm font-semibold tracking-tight ${
-                                isCur ? "text-indigo-300 font-bold" : "text-white"
+                                isCur ? "text-[#A5A9FF] font-bold" : "text-[#F5F5F7]"
                               }`}
                               title={t.title}
                             >
                               {t.title}
                             </p>
-                            <p className="truncate text-[11px] sm:text-xs text-zinc-400 mt-0.5" title={t.artists.map((a) => a.name).join(", ")}>
+                            <p className="truncate text-[11px] sm:text-xs text-[#A1A4B2] mt-0.5" title={t.artists.map((a) => a.name).join(", ")}>
                               {t.artists.map((a) => a.name).join(", ")}
                             </p>
                           </div>
@@ -2146,7 +2476,7 @@ export default function Home() {
                               else handlePlayTrack(t, quickPicksTracks, idx);
                             }}
                             aria-label={`Play ${t.title}`}
-                            className={`flex h-8 w-8 items-center justify-center rounded-full bg-white text-black shadow-md transition hover:scale-105 active:scale-95 shrink-0 ${
+                            className={`flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F5F7] text-[#090A0F] shadow-md transition hover:scale-105 active:scale-95 shrink-0 ${
                               isCur
                                 ? "opacity-100"
                                 : "opacity-0 group-hover:opacity-100"
@@ -2244,10 +2574,10 @@ export default function Home() {
               <section>
                 <div className="mb-3.5 flex items-center justify-between">
                   <div>
-                    <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-[1.5px] text-zinc-500">
+                    <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-[1.5px] text-[#686C7B]">
                       DISCOVER CREATORS
                     </p>
-                    <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
+                    <h2 className="text-base sm:text-lg font-bold text-[#F5F5F7] tracking-tight">
                       Popular Artists
                     </h2>
                   </div>
@@ -2259,25 +2589,27 @@ export default function Home() {
                       onClick={() => handleSelectQuery(artist.name)}
                       className="group flex flex-col items-center gap-2 shrink-0 w-20 sm:w-24 text-center cursor-pointer select-none snap-start"
                     >
-                      <div className="relative h-16 w-16 sm:h-20 sm:w-20 overflow-hidden rounded-full border border-white/15 bg-zinc-800 shadow-md transition duration-300 group-hover:scale-105 group-hover:border-white/30 group-hover:shadow-[0_0_20px_rgba(99,102,241,0.3)]">
+                      <div className="relative h-16 w-16 sm:h-20 sm:w-20 overflow-hidden rounded-full border border-white/15 bg-[#1A1D28] shadow-md transition duration-300 group-hover:scale-105 group-hover:border-[#A5A9FF]/40 group-hover:shadow-[0_0_20px_rgba(165,169,255,0.3)]">
                         {artist.avatar ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={artist.avatar}
                             alt={artist.name}
+                            loading="lazy"
+                            decoding="async"
                             className="h-full w-full object-cover"
                           />
                         ) : (
-                          <div className="flex h-full w-full items-center justify-center text-zinc-600 bg-zinc-900">
+                          <div className="flex h-full w-full items-center justify-center text-[#686C7B] bg-[#1A1D28]">
                             <Icon name="music" size={20} />
                           </div>
                         )}
                       </div>
                       <div>
-                        <h4 className="truncate text-xs font-bold text-white group-hover:text-indigo-300 transition max-w-[80px]">
+                        <h4 className="truncate text-xs font-bold text-[#F5F5F7] group-hover:text-[#A5A9FF] transition max-w-[80px]">
                           {artist.name}
                         </h4>
-                        <p className="text-[10px] text-zinc-500 font-medium">
+                        <p className="text-[10px] text-[#686C7B] font-medium">
                           Artist
                         </p>
                       </div>
@@ -2290,10 +2622,10 @@ export default function Home() {
               <section>
                 <div className="mb-3.5 flex items-center justify-between">
                   <div>
-                    <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-[1.5px] text-zinc-500">
+                    <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-[1.5px] text-[#686C7B]">
                       MOODS & ACTIVITIES
                     </p>
-                    <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
+                    <h2 className="text-base sm:text-lg font-bold text-[#F5F5F7] tracking-tight">
                       Vibe Collections
                     </h2>
                   </div>
@@ -2305,8 +2637,8 @@ export default function Home() {
                     : VIBE_STATIONS
                   ).map((station: any) => {
                     const bgGradient = station.color
-                      ? `linear-gradient(135deg, ${station.color}88 0%, #07090e 100%)`
-                      : "linear-gradient(135deg, #6366f188 0%, #07090e 100%)";
+                      ? `linear-gradient(135deg, ${station.color}88 0%, #090A0F 100%)`
+                      : "linear-gradient(135deg, #292B4B 0%, #090A0F 100%)";
                     return (
                       <div
                         key={station.id}
@@ -2316,13 +2648,15 @@ export default function Home() {
                         style={{
                           background: station.artwork ? undefined : bgGradient,
                         }}
-                        className="group relative flex flex-col justify-end overflow-hidden rounded-2xl border border-white/[0.08] p-4 aspect-[4/3] cursor-pointer shadow-lg transition hover:scale-[1.02] hover:border-white/25 snap-start"
+                        className="group relative flex flex-col justify-end overflow-hidden rounded-2xl border border-white/[0.08] p-4 aspect-[4/3] cursor-pointer shadow-lg transition hover:scale-[1.02] hover:border-[#A5A9FF]/30 snap-start"
                       >
                         {station.artwork && (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={station.artwork}
                             alt={station.title || station.name}
+                            loading="lazy"
+                            decoding="async"
                             className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-110"
                           />
                         )}
@@ -2437,7 +2771,7 @@ export default function Home() {
       </div>
 
       {/* Floating Glassmorphic Bottom Player Dock */}
-      {currentTrack && isPlaying && (
+      {currentTrack && (
         <AudioPlayer
           currentTrack={currentTrack}
           playbackUrl={playbackUrl}
@@ -2445,10 +2779,12 @@ export default function Home() {
           isPlaying={isPlaying}
           currentTime={currentTime}
           duration={duration}
+          bufferedFraction={bufferedFraction}
           volume={volume}
           isMuted={isMuted}
           isShuffle={isShuffle}
           isRepeat={isRepeat}
+          repeatMode={repeatMode}
           isLiked={isCurrentLiked}
           queueCount={queue.length}
           onToggleLike={() => handleToggleLike(currentTrack)}
@@ -2468,6 +2804,7 @@ export default function Home() {
           onToggleLyrics={handleToggleLyrics}
           onToggleRightPanel={() => setIsRightPanelOpen(!isRightPanelOpen)}
           onOpenQueueModal={() => setShowQueueModal(true)}
+          onOpenAudioSettings={() => setShowAudioSettingsModal(true)}
           isRightPanelOpen={isRightPanelOpen}
           onOpenVisualizer={() => setShowFullscreenVisualizer(true)}
           sleepTimerRemaining={sleepTimerRemainingMinutes}
@@ -2485,7 +2822,7 @@ export default function Home() {
           setQuery("");
           setActivePlaylist(null);
         }}
-        hasActiveTrack={Boolean(currentTrack && isPlaying)}
+        hasActiveTrack={Boolean(currentTrack)}
       />
 
       {/* Synchronized Karaoke Lyrics Modal */}
@@ -2512,6 +2849,8 @@ export default function Home() {
         onRemoveFromQueue={handleRemoveFromQueue}
         onMoveQueueItem={handleMoveQueueItem}
         onClearQueue={handleClearQueue}
+        onShuffleQueue={handleShuffleQueue}
+        onSaveQueueAsPlaylist={handleSaveQueueAsPlaylist}
         aiSuggestions={aiQueueSuggestions}
         isLoadingAISuggestions={isLoadingAISuggestions}
         onAddTrackToQueue={handleAddTrackToQueue}
@@ -2527,21 +2866,32 @@ export default function Home() {
         onTogglePlay={togglePlay}
         currentTime={currentTime}
         duration={duration}
+        bufferedFraction={bufferedFraction}
         onSeek={handleSeek}
         onNext={handleNextTrack}
         onPrev={handlePrevTrack}
         isShuffle={isShuffle}
         onToggleShuffle={handleToggleShuffle}
         isRepeat={isRepeat}
+        repeatMode={repeatMode}
         onToggleRepeat={handleToggleRepeat}
         isLiked={isCurrentLiked}
         onToggleLike={() => handleToggleLike(currentTrack)}
+        playbackSpeed={playbackSpeed}
+        onChangePlaybackSpeed={setPlaybackSpeed}
+        onOpenAudioSettings={() => setShowAudioSettingsModal(true)}
+        onOpenLyrics={() => setShowLyrics(true)}
+        onOpenQueue={() => setShowQueueModal(true)}
+        onOpenSleepTimer={() => setShowSleepTimerModal(true)}
+        sleepTimerRemaining={sleepTimerRemainingMinutes}
         onPlayNext={handlePlayNext}
         onAddToQueue={handleAddTrackToQueue}
         onAskAI={(t) => {
           setActive("AI Hub");
           setShowFullscreenVisualizer(false);
         }}
+        equalizerEnabled={settings.equalizerEnabled}
+        equalizerBands={settings.equalizerBands}
       />
 
       {/* Global Track Action Sheet (for Quick Picks, Library, etc.) */}
@@ -2616,6 +2966,17 @@ export default function Home() {
         remainingMinutes={sleepTimerRemainingMinutes}
         onSetTimer={handleSetSleepTimer}
       />
+
+      {/* Audio Studio & Equalizer Modal */}
+      {showAudioSettingsModal && (
+        <AudioSettingsModal
+          isOpen={showAudioSettingsModal}
+          onClose={() => setShowAudioSettingsModal(false)}
+          playbackSpeed={playbackSpeed}
+          onPlaybackSpeedChange={setPlaybackSpeed}
+          onShowToast={showToast}
+        />
+      )}
 
       {/* Expanded User Profile & Preferences Modal */}
       <UserProfileModal

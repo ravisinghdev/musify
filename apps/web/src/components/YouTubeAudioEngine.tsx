@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import type { Track } from "../types/music";
+import type { EqualizerBands } from "../lib/settingsStore";
 
 interface YouTubeAudioEngineProps {
   currentTrack: Track | null;
@@ -9,14 +10,19 @@ interface YouTubeAudioEngineProps {
   volume: number;
   isMuted: boolean;
   isRepeat?: boolean;
+  repeatMode?: "off" | "all" | "one";
+  playbackSpeed?: number;
   crossfadeSeconds?: number;
-  onTimeUpdate: (currentTime: number, duration: number) => void;
+  onTimeUpdate: (currentTime: number, duration: number, loadedFraction?: number) => void;
   onEnded: () => void;
   onIsPlayingChange: (isPlaying: boolean) => void;
   seekToTime: number | null;
   onSeekHandled: () => void;
   onNext?: () => void;
   onPrev?: () => void;
+  equalizerEnabled?: boolean;
+  equalizerBands?: EqualizerBands | Record<number, number>;
+  equalizerPreset?: string;
 }
 
 declare global {
@@ -46,6 +52,8 @@ export function YouTubeAudioEngine({
   volume,
   isMuted,
   isRepeat = false,
+  repeatMode = "off",
+  playbackSpeed = 1.0,
   crossfadeSeconds = 3,
   onTimeUpdate,
   onEnded,
@@ -54,6 +62,9 @@ export function YouTubeAudioEngine({
   onSeekHandled,
   onNext,
   onPrev,
+  equalizerEnabled = false,
+  equalizerBands,
+  equalizerPreset,
 }: YouTubeAudioEngineProps) {
   const playerRef = useRef<any>(null);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
@@ -65,6 +76,7 @@ export function YouTubeAudioEngine({
   const onEndedRef = useRef(onEnded);
   const onIsPlayingChangeRef = useRef(onIsPlayingChange);
   const isRepeatRef = useRef(isRepeat);
+  const repeatModeRef = useRef<"off" | "all" | "one">(repeatMode);
   const onNextRef = useRef(onNext);
   const onPrevRef = useRef(onPrev);
 
@@ -74,9 +86,18 @@ export function YouTubeAudioEngine({
     onEndedRef.current = onEnded;
     onIsPlayingChangeRef.current = onIsPlayingChange;
     isRepeatRef.current = isRepeat;
+    repeatModeRef.current = repeatMode || (isRepeat ? "all" : "off");
     onNextRef.current = onNext;
     onPrevRef.current = onPrev;
   });
+
+  // Synchronize playback speed
+  useEffect(() => {
+    if (!isPlayerReady || !playerRef.current) return;
+    try {
+      playerRef.current.setPlaybackRate?.(playbackSpeed || 1.0);
+    } catch {}
+  }, [playbackSpeed, isPlayerReady]);
 
   // Silent HTML5 audio track to maintain OS background audio focus & prevent mobile browser suspension
   const silentAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -238,6 +259,7 @@ export function YouTubeAudioEngine({
         height: "200",
         width: "200",
         videoId: initialVid,
+        host: "https://www.youtube-nocookie.com",
         playerVars: {
           autoplay: 0,
           controls: 0,
@@ -247,6 +269,7 @@ export function YouTubeAudioEngine({
           playsinline: 1,
           rel: 0,
           enablejsapi: 1,
+          origin: typeof window !== "undefined" ? window.location.origin : undefined,
         },
         events: {
           onReady: (event: any) => {
@@ -310,8 +333,8 @@ export function YouTubeAudioEngine({
                 onIsPlayingChangeRef.current(false);
               }
             } else if (event.data === 0) {
-              // Direct repeat handling: replay instantly from 0s
-              if (isRepeatRef.current) {
+              // Direct repeat-one handling: replay instantly from 0s
+              if (repeatModeRef.current === "one") {
                 try {
                   event.target.seekTo(0, true);
                   event.target.playVideo();
@@ -416,18 +439,42 @@ export function YouTubeAudioEngine({
     } catch {}
   }, [isPlaying, isPlayerReady]);
 
-  // Sync volume & mute
+  // Real-time acoustic equalizer gain & loudness calculation
+  const effectiveVolume = React.useMemo(() => {
+    if (isMuted) return 0;
+    if (!equalizerEnabled || !equalizerBands) return volume;
+    const sub = (equalizerBands[60] ?? 0) * 0.25;
+    const bass = (equalizerBands[230] ?? 0) * 0.25;
+    const mid = (equalizerBands[910] ?? 0) * 0.20;
+    const pres = (equalizerBands[3600] ?? 0) * 0.15;
+    const treble = (equalizerBands[14000] ?? 0) * 0.15;
+    const totalDb = sub + bass + mid + pres + treble;
+    // Map dB curve smoothly with limiter headroom
+    const multiplier = Math.pow(10, totalDb / 50);
+    return Math.min(1.0, Math.max(0.05, volume * multiplier));
+  }, [volume, isMuted, equalizerEnabled, equalizerBands]);
+
+  // Sync volume, mute & dynamic acoustic equalizer
   useEffect(() => {
     if (!isPlayerReady || !playerRef.current) return;
     try {
-      playerRef.current.setVolume?.(isMuted ? 0 : volume * 100);
+      playerRef.current.setVolume?.(isMuted ? 0 : Math.round(effectiveVolume * 100));
       if (isMuted) {
         playerRef.current.mute?.();
       } else {
         playerRef.current.unMute?.();
       }
     } catch {}
-  }, [volume, isMuted, isPlayerReady]);
+
+    // Android Native Hardware Equalizer Bridge
+    if (typeof window !== "undefined" && (window as any).MusifyNativeBridge?.setEqualizer) {
+      try {
+        (window as any).MusifyNativeBridge.setEqualizer(
+          equalizerEnabled ? JSON.stringify(equalizerBands || {}) : "{}"
+        );
+      } catch {}
+    }
+  }, [effectiveVolume, isMuted, isPlayerReady, equalizerEnabled, equalizerBands]);
 
   // Sync seek
   useEffect(() => {
@@ -453,7 +500,8 @@ export function YouTubeAudioEngine({
           }
           const curr = playerRef.current.getCurrentTime?.() ?? 0;
           const dur = playerRef.current.getDuration?.() ?? 0;
-          onTimeUpdate(curr, dur);
+          const loadedFraction = playerRef.current.getVideoLoadedFraction?.() ?? 0;
+          onTimeUpdate(curr, dur, loadedFraction);
 
           // Audio Crossfade Volume Transition Curve
           if (!isMuted && crossfadeSeconds > 0 && dur > crossfadeSeconds * 2) {

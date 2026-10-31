@@ -265,19 +265,19 @@ export function SettingsView({
                 resetSettings();
                 onShowToast?.("Settings Reset", "Default settings restored", "info");
               }}
-              className="text-xs text-zinc-400 hover:text-white transition px-3 py-1.5 rounded-full border border-white/10 hover:bg-white/10"
+              className="text-xs text-[#A1A4B2] hover:text-[#F5F5F7] transition px-3 py-1.5 rounded-full border border-white/10 hover:bg-white/10"
             >
               Reset All
             </button>
           </div>
 
           {/* User Profile Card */}
-          <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] p-5 sm:p-6 backdrop-blur-2xl shadow-xl">
+          <div className="rounded-3xl border border-white/[0.08] bg-[#12141C]/80 p-5 sm:p-6 backdrop-blur-2xl shadow-xl">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-4 min-w-0">
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="group relative flex h-16 w-16 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-white/20 bg-zinc-800 text-lg font-bold text-white shadow-lg transition active:scale-95"
+                  className="group relative flex h-16 w-16 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-white/20 bg-[#1A1D28] text-lg font-bold text-[#F5F5F7] shadow-lg transition active:scale-95"
                   title="Change avatar"
                 >
                   {avatarUrl ? (
@@ -291,19 +291,19 @@ export function SettingsView({
                     <span>{initials}</span>
                   )}
                   <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition">
-                    <Icon name="camera" size={16} className="text-white" />
+                    <Icon name="camera" size={16} className="text-[#F5F5F7]" />
                   </div>
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-base sm:text-lg font-bold text-white truncate">
+                  <h2 className="text-base sm:text-lg font-bold text-[#F5F5F7] truncate">
                     {displayName}
                   </h2>
-                  <p className="text-xs text-zinc-400 truncate mt-0.5">
+                  <p className="text-xs text-[#A1A4B2] truncate mt-0.5">
                     {email}
                   </p>
                   <div className="flex items-center gap-2 mt-2">
-                    <span className="text-[11px] text-zinc-400">
+                    <span className="text-[11px] text-[#A1A4B2]">
                       {favoritesCount} favorites &bull; {playlistsCount} playlists
                     </span>
                   </div>
@@ -312,7 +312,7 @@ export function SettingsView({
 
               <button
                 onClick={() => setViewMode("edit-profile")}
-                className="flex items-center justify-center gap-2 rounded-full bg-white px-5 py-2.5 text-xs font-semibold text-zinc-950 transition hover:bg-zinc-200 active:scale-95 shadow-md shrink-0 w-full sm:w-auto"
+                className="flex items-center justify-center gap-2 rounded-full bg-[#F5F5F7] px-5 py-2.5 text-xs font-semibold text-[#090A0F] transition hover:bg-zinc-200 active:scale-95 shadow-md shrink-0 w-full sm:w-auto"
               >
                 <Icon name="edit" size={14} />
                 <span>Edit Profile</span>
@@ -322,33 +322,33 @@ export function SettingsView({
 
           {/* Grouped Settings Sub-Sections List */}
           <div className="space-y-3">
-            <p className="text-xs font-bold uppercase tracking-wider text-zinc-400 px-1">
+            <p className="text-xs font-bold uppercase tracking-wider text-[#686C7B] px-1">
               Preferences & Configuration
             </p>
 
-            <div className="overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] divide-y divide-white/[0.06] backdrop-blur-2xl shadow-xl">
+            <div className="overflow-hidden rounded-3xl border border-white/[0.08] bg-[#12141C]/80 divide-y divide-white/[0.06] backdrop-blur-2xl shadow-xl">
               {/* 1. Appearance */}
               <button
                 onClick={() => {
                   setActiveSubSection("appearance");
                   setViewMode("sub-section");
                 }}
-                className="flex w-full items-center justify-between p-4 text-left transition hover:bg-white/[0.05]"
+                className="flex w-full items-center justify-between p-4 text-left transition hover:bg-white/[0.04]"
               >
                 <div className="flex items-center gap-3.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#292B4B] text-[#A5A9FF] border border-[#A5A9FF]/20">
                     <Icon name="palette" size={17} />
                   </div>
                   <div>
-                    <span className="text-sm font-semibold text-white block">
+                    <span className="text-sm font-semibold text-[#F5F5F7] block">
                       Appearance
                     </span>
-                    <span className="text-[11px] text-zinc-400">
+                    <span className="text-[11px] text-[#A1A4B2]">
                       Theme ({settings.theme}), accent color & player layout
                     </span>
                   </div>
                 </div>
-                <Icon name="chevron-right" size={16} className="text-zinc-500" />
+                <Icon name="chevron-right" size={16} className="text-[#686C7B]" />
               </button>
 
               {/* 2. Playback */}
@@ -357,22 +357,22 @@ export function SettingsView({
                   setActiveSubSection("playback");
                   setViewMode("sub-section");
                 }}
-                className="flex w-full items-center justify-between p-4 text-left transition hover:bg-white/[0.05]"
+                className="flex w-full items-center justify-between p-4 text-left transition hover:bg-white/[0.04]"
               >
                 <div className="flex items-center gap-3.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#292B4B] text-[#A5A9FF] border border-[#A5A9FF]/20">
                     <Icon name="music" size={17} />
                   </div>
                   <div>
-                    <span className="text-sm font-semibold text-white block">
+                    <span className="text-sm font-semibold text-[#F5F5F7] block">
                       Playback
                     </span>
-                    <span className="text-[11px] text-zinc-400">
+                    <span className="text-[11px] text-[#A1A4B2]">
                       Audio quality ({settings.audioQualityWifi}), crossfade ({settings.crossfadeSeconds}s) & autoplay
                     </span>
                   </div>
                 </div>
-                <Icon name="chevron-right" size={16} className="text-zinc-500" />
+                <Icon name="chevron-right" size={16} className="text-[#686C7B]" />
               </button>
 
               {/* 3. Graphic Equalizer */}
@@ -381,29 +381,29 @@ export function SettingsView({
                   setActiveSubSection("equalizer");
                   setViewMode("sub-section");
                 }}
-                className="flex w-full items-center justify-between p-4 text-left transition hover:bg-white/[0.05]"
+                className="flex w-full items-center justify-between p-4 text-left transition hover:bg-white/[0.04]"
               >
                 <div className="flex items-center gap-3.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#70D6A0]/10 text-[#70D6A0] border border-[#70D6A0]/20">
                     <Icon name="sliders" size={17} />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-white">
+                      <span className="text-sm font-semibold text-[#F5F5F7]">
                         Graphic Equalizer
                       </span>
                       {settings.equalizerEnabled && (
-                        <span className="rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.2 text-[9px] font-bold">
+                        <span className="rounded-full bg-[#70D6A0]/20 text-[#70D6A0] border border-[#70D6A0]/30 px-2 py-0.2 text-[9px] font-bold">
                           ACTIVE
                         </span>
                       )}
                     </div>
-                    <span className="text-[11px] text-zinc-400">
+                    <span className="text-[11px] text-[#A1A4B2]">
                       5-band acoustics & presets ({settings.equalizerPreset})
                     </span>
                   </div>
                 </div>
-                <Icon name="chevron-right" size={16} className="text-zinc-500" />
+                <Icon name="chevron-right" size={16} className="text-[#686C7B]" />
               </button>
 
               {/* 4. Interface & Display */}
@@ -412,47 +412,46 @@ export function SettingsView({
                   setActiveSubSection("interface");
                   setViewMode("sub-section");
                 }}
-                className="flex w-full items-center justify-between p-4 text-left transition hover:bg-white/[0.05]"
+                className="flex w-full items-center justify-between p-4 text-left transition hover:bg-white/[0.04]"
               >
                 <div className="flex items-center gap-3.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#292B4B] text-[#A5A9FF] border border-[#A5A9FF]/20">
                     <Icon name="compass" size={17} />
                   </div>
                   <div>
-                    <span className="text-sm font-semibold text-white block">
+                    <span className="text-sm font-semibold text-[#F5F5F7] block">
                       Interface & Navigation
                     </span>
-                    <span className="text-[11px] text-zinc-400">
+                    <span className="text-[11px] text-[#A1A4B2]">
                       Landing tab ({settings.landingPage}), recommendations & lyrics size
                     </span>
                   </div>
                 </div>
-                <Icon name="chevron-right" size={16} className="text-zinc-500" />
+                <Icon name="chevron-right" size={16} className="text-[#686C7B]" />
               </button>
 
               {/* 5. Touch & Haptic Feedback */}
               <button
                 onClick={() => {
-                  haptics.light();
                   setActiveSubSection("touch-haptics");
                   setViewMode("sub-section");
                 }}
-                className="flex w-full items-center justify-between p-4 text-left transition hover:bg-white/[0.05]"
+                className="flex w-full items-center justify-between p-4 text-left transition hover:bg-white/[0.04]"
               >
                 <div className="flex items-center gap-3.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-pink-500/10 text-pink-400 border border-pink-500/20">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#292B4B] text-[#A5A9FF] border border-[#A5A9FF]/20">
                     <Icon name="sparkles" size={17} />
                   </div>
                   <div>
-                    <span className="text-sm font-semibold text-white block">
+                    <span className="text-sm font-semibold text-[#F5F5F7] block">
                       Touch & Haptic Interactions
                     </span>
-                    <span className="text-[11px] text-zinc-400">
+                    <span className="text-[11px] text-[#A1A4B2]">
                       Vibration intensity ({settings.hapticIntensity}), swipe controls & double-tap actions
                     </span>
                   </div>
                 </div>
-                <Icon name="chevron-right" size={16} className="text-zinc-500" />
+                <Icon name="chevron-right" size={16} className="text-[#686C7B]" />
               </button>
 
               {/* 6. Notifications */}
@@ -461,22 +460,22 @@ export function SettingsView({
                   setActiveSubSection("notifications");
                   setViewMode("sub-section");
                 }}
-                className="flex w-full items-center justify-between p-4 text-left transition hover:bg-white/[0.05]"
+                className="flex w-full items-center justify-between p-4 text-left transition hover:bg-white/[0.04]"
               >
                 <div className="flex items-center gap-3.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#E9BB73]/10 text-[#E9BB73] border border-[#E9BB73]/20">
                     <Icon name="bell" size={17} />
                   </div>
                   <div>
-                    <span className="text-sm font-semibold text-white block">
+                    <span className="text-sm font-semibold text-[#F5F5F7] block">
                       Notifications & Lockscreen
                     </span>
-                    <span className="text-[11px] text-zinc-400">
+                    <span className="text-[11px] text-[#A1A4B2]">
                       Media controls & Android background notifications
                     </span>
                   </div>
                 </div>
-                <Icon name="chevron-right" size={16} className="text-zinc-500" />
+                <Icon name="chevron-right" size={16} className="text-[#686C7B]" />
               </button>
 
               {/* 6. Privacy & Storage */}
@@ -485,22 +484,22 @@ export function SettingsView({
                   setActiveSubSection("privacy-storage");
                   setViewMode("sub-section");
                 }}
-                className="flex w-full items-center justify-between p-4 text-left transition hover:bg-white/[0.05]"
+                className="flex w-full items-center justify-between p-4 text-left transition hover:bg-white/[0.04]"
               >
                 <div className="flex items-center gap-3.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#F17D85]/10 text-[#F17D85] border border-[#F17D85]/20">
                     <Icon name="shield" size={17} />
                   </div>
                   <div>
-                    <span className="text-sm font-semibold text-white block">
+                    <span className="text-sm font-semibold text-[#F5F5F7] block">
                       Privacy & Storage
                     </span>
-                    <span className="text-[11px] text-zinc-400">
+                    <span className="text-[11px] text-[#A1A4B2]">
                       Clear cache ({storageEstimate.usedMb} MB used), private session & history
                     </span>
                   </div>
                 </div>
-                <Icon name="chevron-right" size={16} className="text-zinc-500" />
+                <Icon name="chevron-right" size={16} className="text-[#686C7B]" />
               </button>
 
               {/* 7. About */}
@@ -509,17 +508,17 @@ export function SettingsView({
                   setActiveSubSection("about");
                   setViewMode("sub-section");
                 }}
-                className="flex w-full items-center justify-between p-4 text-left transition hover:bg-white/[0.05]"
+                className="flex w-full items-center justify-between p-4 text-left transition hover:bg-white/[0.04]"
               >
                 <div className="flex items-center gap-3.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-500/10 text-zinc-300 border border-white/10">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.05] text-[#A1A4B2] border border-white/10">
                     <Icon name="settings" size={17} />
                   </div>
                   <div>
-                    <span className="text-sm font-semibold text-white block">
+                    <span className="text-sm font-semibold text-[#F5F5F7] block">
                       About Musify
                     </span>
-                    <span className="text-[11px] text-zinc-400">
+                    <span className="text-[11px] text-[#A1A4B2]">
                       v1.0.50 &bull; Platform architecture & credits
                     </span>
                   </div>
@@ -762,12 +761,12 @@ export function SettingsView({
           {activeSubSection === "appearance" && (
             <div className="space-y-5">
               {/* Theme Mode */}
-              <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] p-5 backdrop-blur-2xl space-y-3.5 shadow-xl">
+              <div className="rounded-3xl border border-white/[0.08] bg-[#12141C]/80 p-5 backdrop-blur-2xl space-y-3.5 shadow-xl">
                 <div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#686C7B]">
                     Theme Mode
                   </h3>
-                  <p className="text-[11px] text-zinc-400 mt-0.5">
+                  <p className="text-[11px] text-[#A1A4B2] mt-0.5">
                     Select background depth and contrast
                   </p>
                 </div>
@@ -784,8 +783,8 @@ export function SettingsView({
                       onClick={() => updateSettings({ theme: t.id as ThemeMode })}
                       className={`flex items-center gap-2.5 rounded-2xl border p-3 text-left transition ${
                         settings.theme === t.id
-                          ? "border-purple-500/50 bg-purple-500/15 text-white font-bold"
-                          : "border-white/10 bg-white/[0.02] text-zinc-400 hover:bg-white/5"
+                          ? "border-[#A5A9FF]/40 bg-[#292B4B] text-[#A5A9FF] font-bold"
+                          : "border-white/10 bg-white/[0.02] text-[#A1A4B2] hover:bg-white/5"
                       }`}
                     >
                       <span
@@ -799,12 +798,12 @@ export function SettingsView({
               </div>
 
               {/* Accent Color */}
-              <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] p-5 backdrop-blur-2xl space-y-3.5 shadow-xl">
+              <div className="rounded-3xl border border-white/[0.08] bg-[#12141C]/80 p-5 backdrop-blur-2xl space-y-3.5 shadow-xl">
                 <div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#686C7B]">
                     Accent Color
                   </h3>
-                  <p className="text-[11px] text-zinc-400 mt-0.5">
+                  <p className="text-[11px] text-[#A1A4B2] mt-0.5">
                     Colors highlights, sliders, and active elements
                   </p>
                 </div>
@@ -822,8 +821,8 @@ export function SettingsView({
                       onClick={() => updateSettings({ accentColor: acc.id as AccentColor })}
                       className={`rounded-2xl border p-3 text-center transition ${
                         settings.accentColor === acc.id
-                          ? "border-purple-500/50 bg-purple-500/15 text-white font-bold"
-                          : "border-white/10 bg-white/[0.02] text-zinc-400 hover:bg-white/5"
+                          ? "border-[#A5A9FF]/40 bg-[#292B4B] text-[#A5A9FF] font-bold"
+                          : "border-white/10 bg-white/[0.02] text-[#A1A4B2] hover:bg-white/5"
                       }`}
                     >
                       <span className="text-xs">{acc.label}</span>
@@ -833,12 +832,12 @@ export function SettingsView({
               </div>
 
               {/* Bottom Player Dock Shape */}
-              <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] p-5 backdrop-blur-2xl space-y-3.5 shadow-xl">
+              <div className="rounded-3xl border border-white/[0.08] bg-[#12141C]/80 p-5 backdrop-blur-2xl space-y-3.5 shadow-xl">
                 <div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#686C7B]">
                     Player Dock Appearance
                   </h3>
-                  <p className="text-[11px] text-zinc-400 mt-0.5">
+                  <p className="text-[11px] text-[#A1A4B2] mt-0.5">
                     Choose floating pill or edge-to-edge dock
                   </p>
                 </div>
@@ -847,47 +846,47 @@ export function SettingsView({
                     onClick={() => updateSettings({ playerShape: "pill" })}
                     className={`rounded-2xl border p-3.5 text-left transition ${
                       settings.playerShape === "pill"
-                        ? "border-purple-500/50 bg-purple-500/15 text-white font-bold"
-                        : "border-white/10 bg-white/[0.02] text-zinc-400 hover:bg-white/5"
+                        ? "border-[#A5A9FF]/40 bg-[#292B4B] text-[#A5A9FF] font-bold"
+                        : "border-white/10 bg-white/[0.02] text-[#A1A4B2] hover:bg-white/5"
                     }`}
                   >
-                    <span className="text-xs font-semibold block text-white">Floating Pill</span>
-                    <span className="text-[10px] text-zinc-400">Modern rounded floating bar</span>
+                    <span className="text-xs font-semibold block text-[#F5F5F7]">Floating Pill</span>
+                    <span className="text-[10px] text-[#A1A4B2]">Modern rounded floating bar</span>
                   </button>
                   <button
                     onClick={() => updateSettings({ playerShape: "bar" })}
                     className={`rounded-2xl border p-3.5 text-left transition ${
                       settings.playerShape === "bar"
-                        ? "border-purple-500/50 bg-purple-500/15 text-white font-bold"
-                        : "border-white/10 bg-white/[0.02] text-zinc-400 hover:bg-white/5"
+                        ? "border-[#A5A9FF]/40 bg-[#292B4B] text-[#A5A9FF] font-bold"
+                        : "border-white/10 bg-white/[0.02] text-[#A1A4B2] hover:bg-white/5"
                     }`}
                   >
-                    <span className="text-xs font-semibold block text-white">Full-Width Dock</span>
-                    <span className="text-[10px] text-zinc-400">Classic edge-to-edge docked player</span>
+                    <span className="text-xs font-semibold block text-[#F5F5F7]">Full-Width Dock</span>
+                    <span className="text-[10px] text-[#A1A4B2]">Classic edge-to-edge docked player</span>
                   </button>
                 </div>
               </div>
 
               {/* Toggles: Dynamic Glow & Reduce Motion */}
-              <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] p-5 backdrop-blur-2xl divide-y divide-white/5 shadow-xl space-y-4">
+              <div className="rounded-3xl border border-white/[0.08] bg-[#12141C]/80 p-5 backdrop-blur-2xl divide-y divide-white/5 shadow-xl space-y-4">
                 <div className="flex items-center justify-between pt-1">
                   <div>
-                    <p className="text-xs font-semibold text-white">
+                    <p className="text-xs font-semibold text-[#F5F5F7]">
                       Dynamic Artwork Ambient Glow
                     </p>
-                    <p className="text-[11px] text-zinc-400">
+                    <p className="text-[11px] text-[#A1A4B2]">
                       Paints the viewport background with current song lighting
                     </p>
                   </div>
                   <button
                     onClick={() => updateSettings({ ambientGlow: !settings.ambientGlow })}
                     className={`h-6 w-11 rounded-full transition-colors relative ${
-                      settings.ambientGlow ? "bg-purple-600" : "bg-white/15"
+                      settings.ambientGlow ? "bg-[#A5A9FF]" : "bg-white/15"
                     }`}
                   >
                     <span
                       className={`absolute top-1 h-4 w-4 rounded-full transition-transform ${
-                        settings.ambientGlow ? "left-6 bg-white" : "left-1 bg-white"
+                        settings.ambientGlow ? "left-6 bg-[#090A0F]" : "left-1 bg-white"
                       }`}
                     />
                   </button>
@@ -895,22 +894,22 @@ export function SettingsView({
 
                 <div className="flex items-center justify-between pt-4">
                   <div>
-                    <p className="text-xs font-semibold text-white">
+                    <p className="text-xs font-semibold text-[#F5F5F7]">
                       Reduce Motion & Animations
                     </p>
-                    <p className="text-[11px] text-zinc-400">
+                    <p className="text-[11px] text-[#A1A4B2]">
                       Disables floating ambient disc motion for lower battery usage
                     </p>
                   </div>
                   <button
                     onClick={() => updateSettings({ reduceMotion: !settings.reduceMotion })}
                     className={`h-6 w-11 rounded-full transition-colors relative ${
-                      settings.reduceMotion ? "bg-purple-600" : "bg-white/15"
+                      settings.reduceMotion ? "bg-[#A5A9FF]" : "bg-white/15"
                     }`}
                   >
                     <span
                       className={`absolute top-1 h-4 w-4 rounded-full transition-transform ${
-                        settings.reduceMotion ? "left-6 bg-white" : "left-1 bg-white"
+                        settings.reduceMotion ? "left-6 bg-[#090A0F]" : "left-1 bg-white"
                       }`}
                     />
                   </button>
@@ -923,12 +922,12 @@ export function SettingsView({
           {activeSubSection === "playback" && (
             <div className="space-y-5">
               {/* Bitrate Selection */}
-              <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] p-5 backdrop-blur-2xl space-y-3.5 shadow-xl">
+              <div className="rounded-3xl border border-white/[0.08] bg-[#12141C]/80 p-5 backdrop-blur-2xl space-y-3.5 shadow-xl">
                 <div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#686C7B]">
                     Default Audio Quality
                   </h3>
-                  <p className="text-[11px] text-zinc-400 mt-0.5">
+                  <p className="text-[11px] text-[#A1A4B2] mt-0.5">
                     Highest possible stream bitrate selected automatically
                   </p>
                 </div>
@@ -944,34 +943,34 @@ export function SettingsView({
                       onClick={() => updateSettings({ audioQualityWifi: opt.id as AudioQuality })}
                       className={`rounded-2xl border p-3.5 text-left transition ${
                         settings.audioQualityWifi === opt.id
-                          ? "border-purple-500/50 bg-purple-500/15 text-white"
-                          : "border-white/10 bg-white/[0.02] text-zinc-400 hover:bg-white/5"
+                          ? "border-[#A5A9FF]/40 bg-[#292B4B] text-[#A5A9FF] font-semibold"
+                          : "border-white/10 bg-white/[0.02] text-[#A1A4B2] hover:bg-white/5"
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-white">{opt.label}</span>
+                        <span className="text-xs font-bold text-[#F5F5F7]">{opt.label}</span>
                         {settings.audioQualityWifi === opt.id && (
-                          <span className="h-2 w-2 rounded-full bg-purple-400" />
+                          <span className="h-2 w-2 rounded-full bg-[#A5A9FF]" />
                         )}
                       </div>
-                      <p className="text-[10px] text-zinc-400 mt-1">{opt.sub}</p>
+                      <p className="text-[10px] text-[#A1A4B2] mt-1">{opt.sub}</p>
                     </button>
                   ))}
                 </div>
               </div>
 
               {/* Crossfade Duration Slider */}
-              <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] p-5 backdrop-blur-2xl space-y-3.5 shadow-xl">
+              <div className="rounded-3xl border border-white/[0.08] bg-[#12141C]/80 p-5 backdrop-blur-2xl space-y-3.5 shadow-xl">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#686C7B]">
                       Crossfade Duration
                     </h3>
-                    <p className="text-[11px] text-zinc-400 mt-0.5">
+                    <p className="text-[11px] text-[#A1A4B2] mt-0.5">
                       Fades seamlessly between adjacent tracks
                     </p>
                   </div>
-                  <span className="font-mono text-sm font-bold text-purple-400">
+                  <span className="font-mono text-sm font-bold text-[#A5A9FF]">
                     {settings.crossfadeSeconds}s
                   </span>
                 </div>
@@ -982,9 +981,9 @@ export function SettingsView({
                   step={1}
                   value={settings.crossfadeSeconds}
                   onChange={(e) => updateSettings({ crossfadeSeconds: Number(e.target.value) })}
-                  className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                  className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#A5A9FF]"
                 />
-                <div className="flex justify-between text-[10px] font-mono text-zinc-500">
+                <div className="flex justify-between text-[10px] font-mono text-[#686C7B]">
                   <span>Off (0s)</span>
                   <span>4s</span>
                   <span>8s</span>
@@ -993,23 +992,23 @@ export function SettingsView({
               </div>
 
               {/* Gapless, Volume Memory & Default Shuffle/Repeat */}
-              <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] p-5 backdrop-blur-2xl divide-y divide-white/5 shadow-xl space-y-4">
+              <div className="rounded-3xl border border-white/[0.08] bg-[#12141C]/80 p-5 backdrop-blur-2xl divide-y divide-white/5 shadow-xl space-y-4">
                 <div className="flex items-center justify-between pt-1">
                   <div>
-                    <p className="text-xs font-semibold text-white">Gapless Playback</p>
-                    <p className="text-[11px] text-zinc-400">
+                    <p className="text-xs font-semibold text-[#F5F5F7]">Gapless Playback</p>
+                    <p className="text-[11px] text-[#A1A4B2]">
                       Pre-buffers next audio track for zero-gap playback
                     </p>
                   </div>
                   <button
                     onClick={() => updateSettings({ gaplessPlayback: !settings.gaplessPlayback })}
                     className={`h-6 w-11 rounded-full transition-colors relative ${
-                      settings.gaplessPlayback ? "bg-purple-600" : "bg-white/15"
+                      settings.gaplessPlayback ? "bg-[#A5A9FF]" : "bg-white/15"
                     }`}
                   >
                     <span
                       className={`absolute top-1 h-4 w-4 rounded-full transition-transform ${
-                        settings.gaplessPlayback ? "left-6 bg-white" : "left-1 bg-white"
+                        settings.gaplessPlayback ? "left-6 bg-[#090A0F]" : "left-1 bg-white"
                       }`}
                     />
                   </button>
@@ -1017,20 +1016,20 @@ export function SettingsView({
 
                 <div className="flex items-center justify-between pt-4">
                   <div>
-                    <p className="text-xs font-semibold text-white">Remember Volume</p>
-                    <p className="text-[11px] text-zinc-400">
+                    <p className="text-xs font-semibold text-[#F5F5F7]">Remember Volume</p>
+                    <p className="text-[11px] text-[#A1A4B2]">
                       Restores last player volume level on app launch
                     </p>
                   </div>
                   <button
                     onClick={() => updateSettings({ rememberVolume: !settings.rememberVolume })}
                     className={`h-6 w-11 rounded-full transition-colors relative ${
-                      settings.rememberVolume ? "bg-purple-600" : "bg-white/15"
+                      settings.rememberVolume ? "bg-[#A5A9FF]" : "bg-white/15"
                     }`}
                   >
                     <span
                       className={`absolute top-1 h-4 w-4 rounded-full transition-transform ${
-                        settings.rememberVolume ? "left-6 bg-white" : "left-1 bg-white"
+                        settings.rememberVolume ? "left-6 bg-[#090A0F]" : "left-1 bg-white"
                       }`}
                     />
                   </button>
@@ -1038,20 +1037,20 @@ export function SettingsView({
 
                 <div className="flex items-center justify-between pt-4">
                   <div>
-                    <p className="text-xs font-semibold text-white">AI DJ Smart Autoplay</p>
-                    <p className="text-[11px] text-zinc-400">
+                    <p className="text-xs font-semibold text-[#F5F5F7]">AI DJ Smart Autoplay</p>
+                    <p className="text-[11px] text-[#A1A4B2]">
                       Continues playing matching songs when queue finishes
                     </p>
                   </div>
                   <button
                     onClick={() => updateSettings({ aiDjAutoplay: !settings.aiDjAutoplay })}
                     className={`h-6 w-11 rounded-full transition-colors relative ${
-                      settings.aiDjAutoplay ? "bg-purple-600" : "bg-white/15"
+                      settings.aiDjAutoplay ? "bg-[#A5A9FF]" : "bg-white/15"
                     }`}
                   >
                     <span
                       className={`absolute top-1 h-4 w-4 rounded-full transition-transform ${
-                        settings.aiDjAutoplay ? "left-6 bg-white" : "left-1 bg-white"
+                        settings.aiDjAutoplay ? "left-6 bg-[#090A0F]" : "left-1 bg-white"
                       }`}
                     />
                   </button>
@@ -1059,20 +1058,20 @@ export function SettingsView({
 
                 <div className="flex items-center justify-between pt-4">
                   <div>
-                    <p className="text-xs font-semibold text-white">Default Shuffle Mode</p>
-                    <p className="text-[11px] text-zinc-400">
+                    <p className="text-xs font-semibold text-[#F5F5F7]">Default Shuffle Mode</p>
+                    <p className="text-[11px] text-[#A1A4B2]">
                       Automatically enables shuffle when playing any playlist
                     </p>
                   </div>
                   <button
                     onClick={() => updateSettings({ defaultShuffle: !settings.defaultShuffle })}
                     className={`h-6 w-11 rounded-full transition-colors relative ${
-                      settings.defaultShuffle ? "bg-purple-600" : "bg-white/15"
+                      settings.defaultShuffle ? "bg-[#A5A9FF]" : "bg-white/15"
                     }`}
                   >
                     <span
                       className={`absolute top-1 h-4 w-4 rounded-full transition-transform ${
-                        settings.defaultShuffle ? "left-6 bg-white" : "left-1 bg-white"
+                        settings.defaultShuffle ? "left-6 bg-[#090A0F]" : "left-1 bg-white"
                       }`}
                     />
                   </button>
@@ -1084,30 +1083,30 @@ export function SettingsView({
           {/* ===================== 3. EQUALIZER ===================== */}
           {activeSubSection === "equalizer" && (
             <div className="space-y-5">
-              <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] p-5 backdrop-blur-2xl space-y-5 shadow-xl">
+              <div className="rounded-3xl border border-white/[0.08] bg-[#12141C]/80 p-5 backdrop-blur-2xl space-y-5 shadow-xl">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-sm font-bold text-white">Equalizer Master Switch</h3>
-                    <p className="text-[11px] text-zinc-400">
+                    <h3 className="text-sm font-bold text-[#F5F5F7]">Equalizer Master Switch</h3>
+                    <p className="text-[11px] text-[#A1A4B2]">
                       5-band WebAudio parametric biquad filter
                     </p>
                   </div>
                   <button
                     onClick={() => updateSettings({ equalizerEnabled: !settings.equalizerEnabled })}
                     className={`h-6 w-11 rounded-full transition-colors relative ${
-                      settings.equalizerEnabled ? "bg-purple-600" : "bg-white/15"
+                      settings.equalizerEnabled ? "bg-[#A5A9FF]" : "bg-white/15"
                     }`}
                   >
                     <span
                       className={`absolute top-1 h-4 w-4 rounded-full transition-transform ${
-                        settings.equalizerEnabled ? "left-6 bg-white" : "left-1 bg-white"
+                        settings.equalizerEnabled ? "left-6 bg-[#090A0F]" : "left-1 bg-white"
                       }`}
                     />
                   </button>
                 </div>
 
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-[#686C7B] mb-2">
                     Acoustic Presets
                   </p>
                   <div className="flex flex-wrap gap-2">
@@ -1132,8 +1131,8 @@ export function SettingsView({
                         }}
                         className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
                           settings.equalizerPreset === preset.id && settings.equalizerEnabled
-                            ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
-                            : "border border-white/10 bg-white/5 text-zinc-400 hover:bg-white/10"
+                            ? "bg-[#A5A9FF] text-[#090A0F] shadow-md shadow-[#A5A9FF]/20"
+                            : "border border-white/10 bg-white/5 text-[#A1A4B2] hover:bg-white/10"
                         }`}
                       >
                         {preset.label}
@@ -1158,7 +1157,7 @@ export function SettingsView({
                       const gain = (settings.equalizerBands as any)[band.hz] ?? 0;
                       return (
                         <div key={band.hz} className="flex flex-col items-center gap-2">
-                          <span className="font-mono text-[10px] font-bold text-purple-400">
+                          <span className="font-mono text-[10px] font-bold text-[#A5A9FF]">
                             {gain > 0 ? `+${gain}` : gain}
                           </span>
                           <div className="h-36 flex items-center justify-center">
@@ -1178,10 +1177,10 @@ export function SettingsView({
                                   },
                                 });
                               }}
-                              className="h-32 w-1.5 accent-purple-400 cursor-pointer appearance-none bg-white/15 rounded-full [writing-mode:vertical-lr] [direction:rtl]"
+                              className="h-32 w-1.5 accent-[#A5A9FF] cursor-pointer appearance-none bg-white/15 rounded-full [writing-mode:vertical-lr] [direction:rtl]"
                             />
                           </div>
-                          <span className="text-[10px] font-semibold text-zinc-400">
+                          <span className="text-[10px] font-semibold text-[#A1A4B2]">
                             {band.name}
                           </span>
                         </div>
@@ -1197,12 +1196,12 @@ export function SettingsView({
           {activeSubSection === "interface" && (
             <div className="space-y-5">
               {/* Default Landing Tab */}
-              <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] p-5 backdrop-blur-2xl space-y-3.5 shadow-xl">
+              <div className="rounded-3xl border border-white/[0.08] bg-[#12141C]/80 p-5 backdrop-blur-2xl space-y-3.5 shadow-xl">
                 <div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#686C7B]">
                     Default Landing Tab
                   </h3>
-                  <p className="text-[11px] text-zinc-400 mt-0.5">
+                  <p className="text-[11px] text-[#A1A4B2] mt-0.5">
                     Screen opened upon app launch
                   </p>
                 </div>
@@ -1218,8 +1217,8 @@ export function SettingsView({
                       onClick={() => updateSettings({ landingPage: item.id as LandingPage })}
                       className={`rounded-2xl border p-3.5 text-left transition ${
                         settings.landingPage === item.id
-                          ? "border-purple-500/50 bg-purple-500/15 text-white font-bold"
-                          : "border-white/10 bg-white/[0.02] text-zinc-400 hover:bg-white/5"
+                          ? "border-[#A5A9FF]/40 bg-[#292B4B] text-[#A5A9FF] font-bold"
+                          : "border-white/10 bg-white/[0.02] text-[#A1A4B2] hover:bg-white/5"
                       }`}
                     >
                       <span className="text-xs">{item.label}</span>
@@ -1229,23 +1228,23 @@ export function SettingsView({
               </div>
 
               {/* Feed Display Toggles */}
-              <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] p-5 backdrop-blur-2xl divide-y divide-white/5 shadow-xl space-y-4">
+              <div className="rounded-3xl border border-white/[0.08] bg-[#12141C]/80 p-5 backdrop-blur-2xl divide-y divide-white/5 shadow-xl space-y-4">
                 <div className="flex items-center justify-between pt-1">
                   <div>
-                    <p className="text-xs font-semibold text-white">Music Recommendations</p>
-                    <p className="text-[11px] text-zinc-400">
+                    <p className="text-xs font-semibold text-[#F5F5F7]">Music Recommendations</p>
+                    <p className="text-[11px] text-[#A1A4B2]">
                       Show &ldquo;Recommended for you&rdquo; carousel on Home
                     </p>
                   </div>
                   <button
                     onClick={() => updateSettings({ showRecommendations: !settings.showRecommendations })}
                     className={`h-6 w-11 rounded-full transition-colors relative ${
-                      settings.showRecommendations ? "bg-purple-600" : "bg-white/15"
+                      settings.showRecommendations ? "bg-[#A5A9FF]" : "bg-white/15"
                     }`}
                   >
                     <span
                       className={`absolute top-1 h-4 w-4 rounded-full transition-transform ${
-                        settings.showRecommendations ? "left-6 bg-white" : "left-1 bg-white"
+                        settings.showRecommendations ? "left-6 bg-[#090A0F]" : "left-1 bg-white"
                       }`}
                     />
                   </button>
@@ -1253,20 +1252,20 @@ export function SettingsView({
 
                 <div className="flex items-center justify-between pt-4">
                   <div>
-                    <p className="text-xs font-semibold text-white">Recently Played Shelf</p>
-                    <p className="text-[11px] text-zinc-400">
+                    <p className="text-xs font-semibold text-[#F5F5F7]">Recently Played Shelf</p>
+                    <p className="text-[11px] text-[#A1A4B2]">
                       Display previous listening history on Home
                     </p>
                   </div>
                   <button
                     onClick={() => updateSettings({ showRecentlyPlayed: !settings.showRecentlyPlayed })}
                     className={`h-6 w-11 rounded-full transition-colors relative ${
-                      settings.showRecentlyPlayed ? "bg-purple-600" : "bg-white/15"
+                      settings.showRecentlyPlayed ? "bg-[#A5A9FF]" : "bg-white/15"
                     }`}
                   >
                     <span
                       className={`absolute top-1 h-4 w-4 rounded-full transition-transform ${
-                        settings.showRecentlyPlayed ? "left-6 bg-white" : "left-1 bg-white"
+                        settings.showRecentlyPlayed ? "left-6 bg-[#090A0F]" : "left-1 bg-white"
                       }`}
                     />
                   </button>
@@ -1274,20 +1273,20 @@ export function SettingsView({
 
                 <div className="flex items-center justify-between pt-4">
                   <div>
-                    <p className="text-xs font-semibold text-white">Compact Track Density</p>
-                    <p className="text-[11px] text-zinc-400">
+                    <p className="text-xs font-semibold text-[#F5F5F7]">Compact Track Density</p>
+                    <p className="text-[11px] text-[#A1A4B2]">
                       Tighter track list rows for higher information density
                     </p>
                   </div>
                   <button
                     onClick={() => updateSettings({ compactMode: !settings.compactMode })}
                     className={`h-6 w-11 rounded-full transition-colors relative ${
-                      settings.compactMode ? "bg-purple-600" : "bg-white/15"
+                      settings.compactMode ? "bg-[#A5A9FF]" : "bg-white/15"
                     }`}
                   >
                     <span
                       className={`absolute top-1 h-4 w-4 rounded-full transition-transform ${
-                        settings.compactMode ? "left-6 bg-white" : "left-1 bg-white"
+                        settings.compactMode ? "left-6 bg-[#090A0F]" : "left-1 bg-white"
                       }`}
                     />
                   </button>
@@ -1295,12 +1294,12 @@ export function SettingsView({
               </div>
 
               {/* Lyrics Typography */}
-              <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] p-5 backdrop-blur-2xl space-y-3.5 shadow-xl">
+              <div className="rounded-3xl border border-white/[0.08] bg-[#12141C]/80 p-5 backdrop-blur-2xl space-y-3.5 shadow-xl">
                 <div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#686C7B]">
                     Lyrics Font Size
                   </h3>
-                  <p className="text-[11px] text-zinc-400 mt-0.5">
+                  <p className="text-[11px] text-[#A1A4B2] mt-0.5">
                     Controls synchronized karaoke lyrics scale
                   </p>
                 </div>
@@ -1311,8 +1310,8 @@ export function SettingsView({
                       onClick={() => updateSettings({ lyricsFontSize: size })}
                       className={`rounded-2xl border p-3 text-center capitalize transition ${
                         settings.lyricsFontSize === size
-                          ? "border-purple-500/50 bg-purple-500/15 text-white font-bold"
-                          : "border-white/10 bg-white/[0.02] text-zinc-400 hover:bg-white/5"
+                          ? "border-[#A5A9FF]/40 bg-[#292B4B] text-[#A5A9FF] font-bold"
+                          : "border-white/10 bg-white/[0.02] text-[#A1A4B2] hover:bg-white/5"
                       }`}
                     >
                       <span className="text-xs">{size}</span>
@@ -1327,11 +1326,11 @@ export function SettingsView({
           {activeSubSection === "touch-haptics" && (
             <div className="space-y-5">
               {/* 1. Master Haptic Feedback */}
-              <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] p-5 backdrop-blur-2xl space-y-4 shadow-xl">
+              <div className="rounded-3xl border border-white/[0.08] bg-[#12141C]/80 p-5 backdrop-blur-2xl space-y-4 shadow-xl">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-sm font-bold text-white">Haptic Vibration</h3>
-                    <p className="text-[11px] text-zinc-400 mt-0.5">
+                    <h3 className="text-sm font-bold text-[#F5F5F7]">Haptic Vibration</h3>
+                    <p className="text-[11px] text-[#A1A4B2] mt-0.5">
                       Tactile micro-feedback on playback buttons, sliders & navigation
                     </p>
                   </div>
@@ -1342,12 +1341,12 @@ export function SettingsView({
                       if (next) haptics.success();
                     }}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      settings.hapticsEnabled ? "bg-purple-600" : "bg-white/10"
+                      settings.hapticsEnabled ? "bg-[#A5A9FF]" : "bg-white/10"
                     }`}
                   >
                     <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        settings.hapticsEnabled ? "translate-x-6" : "translate-x-1"
+                      className={`inline-block h-4 w-4 transform rounded-full bg-[#090A0F] transition-transform ${
+                        settings.hapticsEnabled ? "translate-x-6" : "translate-x-1 bg-white"
                       }`}
                     />
                   </button>
@@ -1357,13 +1356,13 @@ export function SettingsView({
                 {settings.hapticsEnabled && (
                   <div className="pt-2 border-t border-white/[0.06] space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-zinc-300">Vibration Intensity</span>
+                      <span className="text-xs font-semibold text-[#F5F5F7]">Vibration Intensity</span>
                       <button
                         onClick={() => {
                           haptics.medium();
                           onShowToast?.("Haptic Test", "Felt tactile feedback", "info");
                         }}
-                        className="text-[11px] text-purple-300 hover:text-white bg-purple-500/15 px-2.5 py-1 rounded-xl border border-purple-500/25 active:scale-95 transition"
+                        className="text-[11px] text-[#A5A9FF] hover:text-white bg-[#292B4B] px-2.5 py-1 rounded-xl border border-[#A5A9FF]/25 active:scale-95 transition"
                       >
                         Test Feedback
                       </button>
@@ -1378,8 +1377,8 @@ export function SettingsView({
                           }}
                           className={`rounded-2xl border p-2.5 text-center capitalize transition active:scale-95 ${
                             settings.hapticIntensity === lvl
-                              ? "border-purple-500/60 bg-purple-500/20 text-white font-bold shadow-sm"
-                              : "border-white/10 bg-white/[0.02] text-zinc-400 hover:bg-white/5"
+                              ? "border-[#A5A9FF]/40 bg-[#292B4B] text-[#A5A9FF] font-bold shadow-sm"
+                              : "border-white/10 bg-white/[0.02] text-[#A1A4B2] hover:bg-white/5"
                           }`}
                         >
                           <span className="text-xs">{lvl}</span>
@@ -1391,10 +1390,10 @@ export function SettingsView({
               </div>
 
               {/* 2. Gesture Controls */}
-              <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] p-5 backdrop-blur-2xl space-y-4 shadow-xl">
+              <div className="rounded-3xl border border-white/[0.08] bg-[#12141C]/80 p-5 backdrop-blur-2xl space-y-4 shadow-xl">
                 <div>
-                  <h3 className="text-sm font-bold text-white">Touch & Gesture Controls</h3>
-                  <p className="text-[11px] text-zinc-400 mt-0.5">
+                  <h3 className="text-sm font-bold text-[#F5F5F7]">Touch & Gesture Controls</h3>
+                  <p className="text-[11px] text-[#A1A4B2] mt-0.5">
                     Native mobile player swipe gestures and long-press menus
                   </p>
                 </div>
@@ -1403,8 +1402,8 @@ export function SettingsView({
                   {/* Swipe Track Switching */}
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="text-xs font-semibold text-zinc-200 block">Swipe Track Switching</span>
-                      <span className="text-[10px] text-zinc-400 block">Swipe left or right on player dock to skip tracks</span>
+                      <span className="text-xs font-semibold text-[#F5F5F7] block">Swipe Track Switching</span>
+                      <span className="text-[10px] text-[#A1A4B2] block">Swipe left or right on player dock to skip tracks</span>
                     </div>
                     <button
                       onClick={() => {
@@ -1412,12 +1411,12 @@ export function SettingsView({
                         updateSettings({ gestureSwipeTracks: !settings.gestureSwipeTracks });
                       }}
                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                        settings.gestureSwipeTracks ? "bg-purple-600" : "bg-white/10"
+                        settings.gestureSwipeTracks ? "bg-[#A5A9FF]" : "bg-white/10"
                       }`}
                     >
                       <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          settings.gestureSwipeTracks ? "translate-x-6" : "translate-x-1"
+                        className={`inline-block h-4 w-4 transform rounded-full bg-[#090A0F] transition-transform ${
+                          settings.gestureSwipeTracks ? "translate-x-6" : "translate-x-1 bg-white"
                         }`}
                       />
                     </button>
@@ -1426,8 +1425,8 @@ export function SettingsView({
                   {/* Swipe to Close Player */}
                   <div className="flex items-center justify-between pt-2 border-t border-white/[0.06]">
                     <div>
-                      <span className="text-xs font-semibold text-zinc-200 block">Swipe to Close Player</span>
-                      <span className="text-[10px] text-zinc-400 block">Swipe down on full-screen player to collapse</span>
+                      <span className="text-xs font-semibold text-[#F5F5F7] block">Swipe to Close Player</span>
+                      <span className="text-[10px] text-[#A1A4B2] block">Swipe down on full-screen player to collapse</span>
                     </div>
                     <button
                       onClick={() => {
@@ -1435,12 +1434,12 @@ export function SettingsView({
                         updateSettings({ gestureSwipeClose: !settings.gestureSwipeClose });
                       }}
                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                        settings.gestureSwipeClose ? "bg-purple-600" : "bg-white/10"
+                        settings.gestureSwipeClose ? "bg-[#A5A9FF]" : "bg-white/10"
                       }`}
                     >
                       <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          settings.gestureSwipeClose ? "translate-x-6" : "translate-x-1"
+                        className={`inline-block h-4 w-4 transform rounded-full bg-[#090A0F] transition-transform ${
+                          settings.gestureSwipeClose ? "translate-x-6" : "translate-x-1 bg-white"
                         }`}
                       />
                     </button>
@@ -1449,8 +1448,8 @@ export function SettingsView({
                   {/* Double-tap to Like */}
                   <div className="flex items-center justify-between pt-2 border-t border-white/[0.06]">
                     <div>
-                      <span className="text-xs font-semibold text-zinc-200 block">Double-Tap to Like</span>
-                      <span className="text-[10px] text-zinc-400 block">Double-tap vinyl disc or artwork to heart song</span>
+                      <span className="text-xs font-semibold text-[#F5F5F7] block">Double-Tap to Like</span>
+                      <span className="text-[10px] text-[#A1A4B2] block">Double-tap vinyl disc or artwork to heart song</span>
                     </div>
                     <button
                       onClick={() => {
@@ -1458,12 +1457,12 @@ export function SettingsView({
                         updateSettings({ gestureDoubleTapLike: !settings.gestureDoubleTapLike });
                       }}
                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                        settings.gestureDoubleTapLike ? "bg-purple-600" : "bg-white/10"
+                        settings.gestureDoubleTapLike ? "bg-[#A5A9FF]" : "bg-white/10"
                       }`}
                     >
                       <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          settings.gestureDoubleTapLike ? "translate-x-6" : "translate-x-1"
+                        className={`inline-block h-4 w-4 transform rounded-full bg-[#090A0F] transition-transform ${
+                          settings.gestureDoubleTapLike ? "translate-x-6" : "translate-x-1 bg-white"
                         }`}
                       />
                     </button>
@@ -1472,8 +1471,8 @@ export function SettingsView({
                   {/* Long-press Context Menu */}
                   <div className="flex items-center justify-between pt-2 border-t border-white/[0.06]">
                     <div>
-                      <span className="text-xs font-semibold text-zinc-200 block">Long-Press Context Actions</span>
-                      <span className="text-[10px] text-zinc-400 block">Press & hold any song to open native action sheet</span>
+                      <span className="text-xs font-semibold text-[#F5F5F7] block">Long-Press Context Actions</span>
+                      <span className="text-[10px] text-[#A1A4B2] block">Press & hold any song to open native action sheet</span>
                     </div>
                     <button
                       onClick={() => {
@@ -1481,12 +1480,12 @@ export function SettingsView({
                         updateSettings({ gestureLongPress: !settings.gestureLongPress });
                       }}
                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                        settings.gestureLongPress ? "bg-purple-600" : "bg-white/10"
+                        settings.gestureLongPress ? "bg-[#A5A9FF]" : "bg-white/10"
                       }`}
                     >
                       <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          settings.gestureLongPress ? "translate-x-6" : "translate-x-1"
+                        className={`inline-block h-4 w-4 transform rounded-full bg-[#090A0F] transition-transform ${
+                          settings.gestureLongPress ? "translate-x-6" : "translate-x-1 bg-white"
                         }`}
                       />
                     </button>
@@ -1495,8 +1494,8 @@ export function SettingsView({
                   {/* Queue Swipe Actions */}
                   <div className="flex items-center justify-between pt-2 border-t border-white/[0.06]">
                     <div>
-                      <span className="text-xs font-semibold text-zinc-200 block">Queue Swipe Actions</span>
-                      <span className="text-[10px] text-zinc-400 block">Swipe queue items for fast remove or reorder</span>
+                      <span className="text-xs font-semibold text-[#F5F5F7] block">Queue Swipe Actions</span>
+                      <span className="text-[10px] text-[#A1A4B2] block">Swipe queue items for fast remove or reorder</span>
                     </div>
                     <button
                       onClick={() => {
@@ -1504,12 +1503,12 @@ export function SettingsView({
                         updateSettings({ gestureQueueSwipe: !settings.gestureQueueSwipe });
                       }}
                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                        settings.gestureQueueSwipe ? "bg-purple-600" : "bg-white/10"
+                        settings.gestureQueueSwipe ? "bg-[#A5A9FF]" : "bg-white/10"
                       }`}
                     >
                       <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          settings.gestureQueueSwipe ? "translate-x-6" : "translate-x-1"
+                        className={`inline-block h-4 w-4 transform rounded-full bg-[#090A0F] transition-transform ${
+                          settings.gestureQueueSwipe ? "translate-x-6" : "translate-x-1 bg-white"
                         }`}
                       />
                     </button>
@@ -1533,7 +1532,7 @@ export function SettingsView({
                   });
                   onShowToast?.("Reset Successful", "Touch & haptic preferences reset to defaults", "info");
                 }}
-                className="w-full rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-xs font-medium text-zinc-400 hover:text-white hover:bg-white/10 transition active:scale-95"
+                className="w-full rounded-2xl border border-white/10 bg-[#12141C]/80 p-3 text-xs font-medium text-[#A1A4B2] hover:text-[#F5F5F7] hover:bg-white/10 transition active:scale-95"
               >
                 Reset Touch & Haptic Preferences to Default
               </button>
@@ -1543,26 +1542,26 @@ export function SettingsView({
           {/* ===================== 5. NOTIFICATIONS ===================== */}
           {activeSubSection === "notifications" && (
             <div className="space-y-5">
-              <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] p-5 backdrop-blur-2xl space-y-4 shadow-xl">
+              <div className="rounded-3xl border border-white/[0.08] bg-[#12141C]/80 p-5 backdrop-blur-2xl space-y-4 shadow-xl">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-sm font-bold text-white">Android Notification Status</h3>
-                    <p className="text-[11px] text-zinc-400 mt-0.5">
-                      System status: <span className="font-semibold text-purple-300 capitalize">{notifStatus}</span>
+                    <h3 className="text-sm font-bold text-[#F5F5F7]">Android Notification Status</h3>
+                    <p className="text-[11px] text-[#A1A4B2] mt-0.5">
+                      System status: <span className="font-semibold text-[#A5A9FF] capitalize">{notifStatus}</span>
                     </p>
                   </div>
                   {notifStatus !== "granted" && (
                     <button
                       onClick={handleRequestNotifications}
-                      className="rounded-full bg-purple-600 hover:bg-purple-500 px-3.5 py-1.5 text-xs font-semibold text-white transition active:scale-95"
+                      className="rounded-full bg-[#A5A9FF] hover:bg-[#888EFF] px-3.5 py-1.5 text-xs font-semibold text-[#090A0F] transition active:scale-95"
                     >
                       Request Access
                     </button>
                   )}
                 </div>
 
-                <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-3 text-xs text-zinc-300 leading-relaxed">
-                  Musify uses an Android native MediaSession foreground service (<code>MusifyPlaybackService</code>) with media playback controls (Play, Pause, Skip, Prev) and live album artwork directly on your lockscreen and notification tray.
+                <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-3 text-xs text-[#A1A4B2] leading-relaxed">
+                  Musify uses an Android native MediaSession foreground service (<code className="text-[#A5A9FF]">MusifyPlaybackService</code>) with media playback controls (Play, Pause, Skip, Prev) and live album artwork directly on your lockscreen and notification tray.
                 </div>
               </div>
             </div>
@@ -1572,40 +1571,40 @@ export function SettingsView({
           {activeSubSection === "privacy-storage" && (
             <div className="space-y-5">
               {/* Private Session Toggle */}
-              <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] p-5 backdrop-blur-2xl shadow-xl flex items-center justify-between">
+              <div className="rounded-3xl border border-white/[0.08] bg-[#12141C]/80 p-5 backdrop-blur-2xl shadow-xl flex items-center justify-between">
                 <div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#686C7B]">
                     Private Listening Mode
                   </h3>
-                  <p className="text-[11px] text-zinc-400 mt-0.5">
+                  <p className="text-[11px] text-[#A1A4B2] mt-0.5">
                     Listening activity is not recorded in recently played while active
                   </p>
                 </div>
                 <button
                   onClick={() => updateSettings({ privateSession: !settings.privateSession })}
                   className={`h-6 w-11 rounded-full transition-colors relative ${
-                    settings.privateSession ? "bg-purple-600" : "bg-white/15"
+                    settings.privateSession ? "bg-[#A5A9FF]" : "bg-white/15"
                   }`}
                 >
                   <span
                     className={`absolute top-1 h-4 w-4 rounded-full transition-transform ${
-                      settings.privateSession ? "left-6 bg-white" : "left-1 bg-white"
+                      settings.privateSession ? "left-6 bg-[#090A0F]" : "left-1 bg-white"
                     }`}
                   />
                 </button>
               </div>
 
               {/* Cache & Space Usage */}
-              <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] p-5 backdrop-blur-2xl space-y-4 shadow-xl">
+              <div className="rounded-3xl border border-white/[0.08] bg-[#12141C]/80 p-5 backdrop-blur-2xl space-y-4 shadow-xl">
                 <div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#686C7B]">
                     Storage & Cache Usage
                   </h3>
                   <div className="flex items-baseline gap-2 mt-1">
-                    <span className="text-2xl font-bold font-mono text-white">
+                    <span className="text-2xl font-bold font-mono text-[#F5F5F7]">
                       {storageEstimate.usedMb} MB
                     </span>
-                    <span className="text-xs text-zinc-400">
+                    <span className="text-xs text-[#A1A4B2]">
                       used of ~{storageEstimate.totalMb} MB allocated
                     </span>
                   </div>
@@ -1614,12 +1613,12 @@ export function SettingsView({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
                   <button
                     onClick={handleClearAppCache}
-                    className="rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-left hover:bg-white/10 hover:border-white/20 transition"
+                    className="rounded-2xl border border-white/10 bg-[#1A1D28]/60 p-3 text-left hover:bg-white/10 hover:border-white/20 transition"
                   >
-                    <span className="text-xs font-semibold text-white block">
+                    <span className="text-xs font-semibold text-[#F5F5F7] block">
                       Clear Offline Cache
                     </span>
-                    <span className="text-[10px] text-zinc-400">
+                    <span className="text-[10px] text-[#A1A4B2]">
                       Purges cached artwork, responses & blobs
                     </span>
                   </button>
@@ -1631,12 +1630,12 @@ export function SettingsView({
                         onShowToast?.("History Cleared", "Playback history removed", "info");
                       } catch {}
                     }}
-                    className="rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-left hover:bg-white/10 hover:border-white/20 transition"
+                    className="rounded-2xl border border-white/10 bg-[#1A1D28]/60 p-3 text-left hover:bg-white/10 hover:border-white/20 transition"
                   >
-                    <span className="text-xs font-semibold text-white block">
+                    <span className="text-xs font-semibold text-[#F5F5F7] block">
                       Clear Playback History
                     </span>
-                    <span className="text-[10px] text-zinc-400">
+                    <span className="text-[10px] text-[#A1A4B2]">
                       Removes recently played items
                     </span>
                   </button>
@@ -1648,27 +1647,27 @@ export function SettingsView({
           {/* ===================== 7. ABOUT ===================== */}
           {activeSubSection === "about" && (
             <div className="space-y-5">
-              <div className="rounded-3xl border border-white/[0.08] bg-white/[0.03] p-5 sm:p-6 backdrop-blur-2xl space-y-4 shadow-xl text-center">
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-500 text-white font-black text-2xl mx-auto shadow-lg shadow-purple-500/20">
+              <div className="rounded-3xl border border-white/[0.08] bg-[#12141C]/80 p-5 sm:p-6 backdrop-blur-2xl space-y-4 shadow-xl text-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#292B4B] border border-[#A5A9FF]/30 text-[#A5A9FF] font-black text-2xl mx-auto shadow-lg shadow-[#A5A9FF]/10">
                   M
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-white">Musify</h2>
-                  <p className="text-xs text-zinc-400 mt-0.5">
+                  <h2 className="text-lg font-bold text-[#F5F5F7]">Musify</h2>
+                  <p className="text-xs text-[#A1A4B2] mt-0.5">
                     Version 1.0.50 &bull; Release Candidate
                   </p>
                 </div>
-                <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-4 text-xs text-zinc-400 space-y-2 text-left">
-                  <p><strong className="text-zinc-200">Runtime:</strong> Android WebView / Capacitor 8 + Next.js App Router</p>
-                  <p><strong className="text-zinc-200">Audio Engine:</strong> Native MediaSessionCompat + YouTube IFrame Core</p>
-                  <p><strong className="text-zinc-200">Backend API:</strong> Node.js / Bun Cloud Microservice on Render</p>
+                <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-4 text-xs text-[#A1A4B2] space-y-2 text-left">
+                  <p><strong className="text-[#F5F5F7]">Runtime:</strong> Android WebView / Capacitor 8 + Next.js App Router</p>
+                  <p><strong className="text-[#F5F5F7]">Audio Engine:</strong> Native MediaSessionCompat + YouTube IFrame Core</p>
+                  <p><strong className="text-[#F5F5F7]">Backend API:</strong> Node.js / Bun Cloud Microservice on Render</p>
                 </div>
-                <div className="flex justify-center gap-4 text-xs text-zinc-400 pt-2">
-                  <span className="hover:text-white cursor-pointer transition">Privacy Policy</span>
+                <div className="flex justify-center gap-4 text-xs text-[#686C7B] pt-2">
+                  <span className="hover:text-[#F5F5F7] cursor-pointer transition">Privacy Policy</span>
                   <span>&bull;</span>
-                  <span className="hover:text-white cursor-pointer transition">Terms of Service</span>
+                  <span className="hover:text-[#F5F5F7] cursor-pointer transition">Terms of Service</span>
                   <span>&bull;</span>
-                  <span className="hover:text-white cursor-pointer transition">Licenses</span>
+                  <span className="hover:text-[#F5F5F7] cursor-pointer transition">Licenses</span>
                 </div>
               </div>
             </div>

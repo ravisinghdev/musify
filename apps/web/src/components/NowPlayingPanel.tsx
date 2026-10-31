@@ -129,7 +129,7 @@ export function NowPlayingPanel({
     : 0;
 
   return (
-    <aside className="hidden w-[340px] shrink-0 h-ful overflow-y-auto custom-scrollbar border-l border-white/8 p-5 backdrop-blur-2xl xl:flex xl:flex-col select-none">
+    <aside className="hidden w-[340px] shrink-0 h-full pb-32 overflow-y-auto custom-scrollbar border-l border-white/8 p-5 backdrop-blur-2xl xl:flex xl:flex-col select-none">
       {/* Audio / Video Switcher Pill */}
       {hasTrack && currentTrack?.sourceTrackId && (
         <div className="mb-3 flex items-center justify-center">

@@ -793,7 +793,18 @@ const app = new Elysia()
     },
   )
 
-  // AI Next Song & Smart Queue Suggestions
+  // AI Next Song & Smart Queue Suggestions (GET & POST)
+  .get("/api/v1/ai/queue-suggestions", async () => {
+    // Return curated smart queue suggestions when invoked via GET without a specific track
+    const mockTrack: TrackData = {
+      id: "mock_curated",
+      title: "Musify Spotlight",
+      artists: [{ id: "artist_spotlight", name: "Featured" }],
+      sourceTrackId: "jfKfPfyJRdk",
+    };
+    const suggestions = await aiService.getAISmartQueueSuggestions(mockTrack, [], "smart", 6);
+    return { suggestions };
+  })
   .post(
     "/api/v1/ai/queue-suggestions",
     async ({ body, set }) => {

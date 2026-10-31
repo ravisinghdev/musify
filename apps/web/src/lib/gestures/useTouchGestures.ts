@@ -74,7 +74,7 @@ export function useTouchGestures({
       if (onLongPress) {
         longPressTimer.current = setTimeout(() => {
           isLongPressed.current = true;
-          haptics.heavy();
+          haptics.light();
           onLongPress();
         }, longPressDelay);
       }
@@ -145,21 +145,17 @@ export function useTouchGestures({
 
         if (isHorizontal) {
           if (deltaX > 0 && onSwipeRight) {
-            haptics.medium();
             onSwipeRight();
             return;
           } else if (deltaX < 0 && onSwipeLeft) {
-            haptics.medium();
             onSwipeLeft();
             return;
           }
         } else {
           if (deltaY > 0 && onSwipeDown) {
-            haptics.light();
             onSwipeDown();
             return;
           } else if (deltaY < 0 && onSwipeUp) {
-            haptics.light();
             onSwipeUp();
             return;
           }
@@ -177,7 +173,6 @@ export function useTouchGestures({
             singleTapTimer.current = null;
           }
           lastTapTime.current = 0;
-          haptics.success();
           onDoubleTap();
         } else {
           lastTapTime.current = now;
@@ -185,13 +180,11 @@ export function useTouchGestures({
             if (singleTapTimer.current) clearTimeout(singleTapTimer.current);
             singleTapTimer.current = setTimeout(() => {
               if (onTap) {
-                haptics.light();
                 onTap();
               }
               singleTapTimer.current = null;
             }, doubleTapDelay);
           } else if (onTap) {
-            haptics.light();
             onTap();
           }
         }

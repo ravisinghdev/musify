@@ -86,15 +86,63 @@ export function AIHubView({
   const handleAnalyzeTrack = () => {
     if (!currentTrack || isAnalyzing) return;
     setIsAnalyzing(true);
-    // Instant intelligent generative breakdown of the track
+
     setTimeout(() => {
       const title = currentTrack.title;
       const artists = currentTrack.artists.map((a) => a.name).join(", ");
+      const combined = `${title} ${artists}`.toLowerCase();
+
+      // Deterministic hash to generate consistent musical attributes
+      let hash = 0;
+      for (let i = 0; i < combined.length; i++) {
+        hash = (hash << 5) - hash + combined.charCodeAt(i);
+        hash |= 0;
+      }
+      const positiveHash = Math.abs(hash);
+
+      const KEYS = ["C Major", "A Minor", "D Minor", "G Major", "E Minor", "F# Minor", "B Minor", "F Major", "Bb Major", "Eb Major", "C# Minor"];
+      const key = KEYS[positiveHash % KEYS.length];
+
+      let genre = "Global Pop / Contemporary";
+      let baseBpm = 112 + (positiveHash % 16);
+      let sonicProfile = "";
+      let idealContext = "";
+
+      if (combined.includes("lofi") || combined.includes("lo-fi") || combined.includes("chill") || combined.includes("sleep") || combined.includes("relax")) {
+        genre = "Lo-Fi Instrumental & Chillhop";
+        baseBpm = 75 + (positiveHash % 14);
+        sonicProfile = "built on warm vintage tape saturation, mellow electric piano voicings, and soft vinyl crackle with relaxed swung percussion.";
+        idealContext = "Deep study flow, late-night coding sessions, and restorative unwinding.";
+      } else if (combined.includes("dance") || combined.includes("edm") || combined.includes("club") || combined.includes("party") || combined.includes("house") || combined.includes("remix")) {
+        genre = "Electronic / Dance & Club";
+        baseBpm = 124 + (positiveHash % 10);
+        sonicProfile = "driven by powerful four-on-the-floor kick dynamics, punchy sidechain basslines, and euphoric synthesizer leads designed for high sonic impact.";
+        idealContext = "High-intensity cardio, festival peak moments, and celebratory weekend gatherings.";
+      } else if (combined.includes("rock") || combined.includes("metal") || combined.includes("coldplay") || combined.includes("queen") || combined.includes("nirvana")) {
+        genre = "Rock / Modern Alternative";
+        baseBpm = 115 + (positiveHash % 25);
+        sonicProfile = "anchored in organic tube-driven guitars, driving drum kit transients, and soaring vocal anthems with powerful dynamic lift.";
+        idealContext = "Highway road trips, live energy immersion, and motivational workouts.";
+      } else if (combined.includes("acoustic") || combined.includes("unplugged") || combined.includes("guitar") || combined.includes("folk") || combined.includes("indie")) {
+        genre = "Acoustic / Intimate Singer-Songwriter";
+        baseBpm = 78 + (positiveHash % 18);
+        sonicProfile = "framed with delicate fingerstyle acoustic instruments, close-mic vocal presence, and an organic, uncompressed room ambience.";
+        idealContext = "Sunday morning reflections, peaceful coffee breaks, and fireside listening.";
+      } else if (combined.includes("arijit") || combined.includes("pritam") || combined.includes("shreya") || combined.includes("bollywood") || combined.includes("hindi") || combined.includes("punjabi") || combined.includes("diljit") || combined.includes("gehra hua") || combined.includes("ilahi")) {
+        genre = "Modern Desi Cinematic & Melodic Romance";
+        baseBpm = 86 + (positiveHash % 20);
+        sonicProfile = "seamlessly fuses expressive classical vocal ornaments with sweeping cinematic strings, traditional percussion accents, and modern lush sub-bass.";
+        idealContext = "Sunset scenic drives, nostalgic evening unwinding, and heartfelt melodic immersion.";
+      } else {
+        sonicProfile = "features radio-ready production balance, infectious melodic hooks, and punchy contemporary arrangement with balanced mid-range clarity.";
+        idealContext = "Daily commuting, upbeat workspace background, and casual streaming.";
+      }
+
       setAiAnalysis(
-        `"${title}" by ${artists} resonates with emotional depth, harmonizing expressive melodic vocals with a rich, cinematic soundscape. Key characteristics include an atmospheric mid-tempo rhythm (~115 BPM), gentle melancholic undertones, and evocative acoustics tailored for introspective evening listening.`
+        `🎵 Musify Audio Intelligence Breakdown\n• Key Signature: ${key}\n• Estimated Tempo: ~${baseBpm} BPM (4/4 time)\n• Genre Classification: ${genre}\n\n"${title}" by ${artists} ${sonicProfile}\n\n✨ Optimal Listening Setting: ${idealContext}`
       );
       setIsAnalyzing(false);
-    }, 900);
+    }, 850);
   };
 
   return (

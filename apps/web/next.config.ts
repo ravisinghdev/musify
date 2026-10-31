@@ -8,10 +8,23 @@ const isExport =
 const nextConfig: NextConfig = {
   /* config options here */
   devIndicators: false,
+  compress: true,
+  poweredByHeader: false,
+  reactStrictMode: false,
+  allowedDevOrigins: ["realtors-ross-suggestions-subjective.trycloudflare.com"],
+
   ...(isExport
     ? {
         output: "export",
-        images: { unoptimized: true },
+        images: {
+          unoptimized: true,
+          remotePatterns: [
+            {
+              protocol: "https",
+              hostname: "yt3.googleusercontent.com",
+            },
+          ],
+        },
       }
     : {
         async rewrites() {

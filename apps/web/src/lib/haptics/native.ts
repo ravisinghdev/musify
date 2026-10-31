@@ -1,4 +1,4 @@
-import { Haptics, ImpactStyle, NotificationType } from "@capacitor/haptics";
+import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { HapticIntensity, HapticPreset } from "./types";
 
 export class NativeHaptics {
@@ -10,44 +10,21 @@ export class NativeHaptics {
 
   static async trigger(preset: HapticPreset, intensity: HapticIntensity): Promise<void> {
     try {
-      switch (preset) {
-        case "light":
-          if (intensity === "strong") {
-            await Haptics.impact({ style: ImpactStyle.Medium });
-          } else {
-            await Haptics.impact({ style: ImpactStyle.Light });
-          }
-          break;
-
-        case "medium":
-          if (intensity === "light") {
-            await Haptics.impact({ style: ImpactStyle.Light });
-          } else if (intensity === "strong") {
-            await Haptics.impact({ style: ImpactStyle.Heavy });
-          } else {
-            await Haptics.impact({ style: ImpactStyle.Medium });
-          }
-          break;
-
-        case "heavy":
-          await Haptics.impact({ style: ImpactStyle.Heavy });
-          break;
-
-        case "selection":
+      // Mild, premium native tactile feedback:
+      // Uses subtle ImpactStyle.Light or selectionChanged. Never uses loud buzzing notifications.
+      if (intensity === "strong") {
+        if (preset === "heavy" || preset === "error" || preset === "warning") {
+          await Haptics.impact({ style: ImpactStyle.Medium });
+        } else {
+          await Haptics.impact({ style: ImpactStyle.Light });
+        }
+      } else {
+        // Standard & Light: Subtle, tactile micro-tap
+        if (preset === "selection") {
           await Haptics.selectionChanged();
-          break;
-
-        case "success":
-          await Haptics.notification({ type: NotificationType.Success });
-          break;
-
-        case "warning":
-          await Haptics.notification({ type: NotificationType.Warning });
-          break;
-
-        case "error":
-          await Haptics.notification({ type: NotificationType.Error });
-          break;
+        } else {
+          await Haptics.impact({ style: ImpactStyle.Light });
+        }
       }
     } catch {
       // Ignore native vibration errors gracefully
@@ -56,7 +33,8 @@ export class NativeHaptics {
 
   static async vibrate(durationMs: number): Promise<void> {
     try {
-      await Haptics.vibrate({ duration: durationMs });
+      // Keep vibration duration capped to a maximum of 20ms to avoid phone rattle
+      await Haptics.vibrate({ duration: Math.min(20, Math.max(5, durationMs)) });
     } catch {
       // Ignore
     }

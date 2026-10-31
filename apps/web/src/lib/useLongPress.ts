@@ -32,7 +32,7 @@ export function useGesture<T extends HTMLElement = HTMLElement>({
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => {
         isLongPressRef.current = true;
-        haptics.heavy();
+        haptics.light();
         if (onLongPress) {
           onLongPress();
         }

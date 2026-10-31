@@ -1,12 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import "./globals.css";
+import { NetworkBanner } from "../components/NetworkBanner";
 
 const geistSans = { variable: "font-sans" };
 const geistMono = { variable: "font-mono" };
 
 export const viewport: Viewport = {
-  themeColor: "#07090e",
+  themeColor: "#090A0F",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -49,9 +50,19 @@ export default function RootLayout({
           name="apple-mobile-web-app-status-bar-style"
           content="black-translucent"
         />
+        {/* Preconnect & DNS-Prefetch for zero-latency network handshakes */}
+        <link rel="preconnect" href="https://i.ytimg.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://i.ytimg.com" />
+        <link rel="preconnect" href="https://www.youtube-nocookie.com" />
+        <link rel="dns-prefetch" href="https://www.youtube-nocookie.com" />
+        <link rel="preconnect" href="https://musify-4fzw.onrender.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://musify-4fzw.onrender.com" />
+        {/* Pre-warm YouTube Audio Engine API */}
+        <script src="https://www.youtube.com/iframe_api" async id="yt-iframe-api"></script>
       </head>
-      <body className="min-h-full flex flex-col   text-white">
-        <Suspense fallback={<div className="min-h-screen bg-[#07090e]" />}>
+      <body className="min-h-full flex flex-col bg-[#090A0F] text-[#F5F5F7] selection:bg-[#292B4B] selection:text-[#A5A9FF]">
+        <NetworkBanner />
+        <Suspense fallback={<div className="min-h-screen bg-[#090A0F]" />}>
           {children}
         </Suspense>
         <script

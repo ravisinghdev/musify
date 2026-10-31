@@ -1,5 +1,5 @@
 // Musify High-Performance Service Worker for Android & Web PWA
-const CACHE_NAME = "musify-v1.0.2";
+const CACHE_NAME = "musify-v1.0.3";
 const STATIC_ASSETS = [
   "/",
   "/manifest.json",
@@ -32,6 +32,11 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
+  // Only handle GET requests; Cache API cannot cache POST/PUT/DELETE
+  if (event.request.method !== "GET") {
+    return;
+  }
+
   // Pass audio streams and live API queries straight to network
   if (
     event.request.url.includes("/api/") ||

@@ -35,10 +35,11 @@ export function LyricsModal({
   const activeLineRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [activeFontSize, setActiveFontSize] = useState<"compact" | "normal" | "large">(fontSize);
+  const [autoScroll, setAutoScroll] = useState<boolean>(true);
 
-  // Parse LRC timestamps [mm:ss.xx] or dynamically distribute plain lyrics across duration
-  const parsedLyrics = useMemo<LyricLine[] | null>(() => {
-    if (!lyrics) return null;
+  // Parse LRC timestamps [mm:ss.xx]
+  const { isSynced, lrcLines, plainLines } = useMemo(() => {
+    if (!lyrics) return { isSynced: false, lrcLines: [], plainLines: [] };
     const rawLines = lyrics.split("\n");
     const lrcResults: LyricLine[] = [];
     let hasLrcTimestamps = false;
@@ -68,45 +69,43 @@ export function LyricsModal({
     }
 
     if (hasLrcTimestamps && lrcResults.length >= 2) {
-      return lrcResults.sort((a, b) => a.timeSeconds - b.timeSeconds);
+      return {
+        isSynced: true,
+        lrcLines: lrcResults.sort((a, b) => a.timeSeconds - b.timeSeconds),
+        plainLines: [],
+      };
     }
 
-    // Phrase-timing fallback for plain lyrics
+    // Clean plain text lines without synthetic timestamps
     const cleanLines = rawLines
       .map((l) => l.trim())
       .filter((l) => l.length > 0 && !/^\[.*\]$/.test(l));
-    if (cleanLines.length === 0) return null;
 
-    const totalDuration =
-      (track?.durationMs ? track.durationMs / 1000 : 0) || duration || 210;
-    const startSec = Math.min(8, totalDuration * 0.05);
-    const endSec = Math.max(startSec + 15, totalDuration * 0.94);
-    const step = (endSec - startSec) / Math.max(1, cleanLines.length);
+    return {
+      isSynced: false,
+      lrcLines: [],
+      plainLines: cleanLines,
+    };
+  }, [lyrics]);
 
-    return cleanLines.map((text, idx) => ({
-      timeSeconds: startSec + idx * step,
-      text,
-    }));
-  }, [lyrics, track?.durationMs, duration]);
-
-  // Identify current active line index with 350ms lead time
+  // Identify current active line index with 350ms lead time for synced lyrics
   const activeIndex = useMemo(() => {
-    if (!parsedLyrics || parsedLyrics.length === 0) return -1;
+    if (!isSynced || lrcLines.length === 0) return -1;
     let idx = -1;
     const vocalLeadTime = currentTime + 0.35;
-    for (let i = 0; i < parsedLyrics.length; i++) {
-      if (vocalLeadTime >= parsedLyrics[i].timeSeconds) {
+    for (let i = 0; i < lrcLines.length; i++) {
+      if (vocalLeadTime >= lrcLines[i].timeSeconds) {
         idx = i;
       } else {
         break;
       }
     }
     return idx;
-  }, [parsedLyrics, currentTime]);
+  }, [isSynced, lrcLines, currentTime]);
 
-  // Smoothly scroll active line directly to container center
+  // Smoothly scroll active line directly to container center when autoScroll is enabled
   useEffect(() => {
-    if (containerRef.current && activeLineRef.current) {
+    if (autoScroll && containerRef.current && activeLineRef.current) {
       const container = containerRef.current;
       const line = activeLineRef.current;
       const targetScroll =
@@ -119,7 +118,7 @@ export function LyricsModal({
         behavior: "smooth",
       });
     }
-  }, [activeIndex]);
+  }, [activeIndex, autoScroll]);
 
   // Close on Escape key
   useEffect(() => {
@@ -240,9 +239,9 @@ export function LyricsModal({
             <div className="h-7 w-7 animate-spin rounded-full border-2 border-indigo-400 border-t-transparent" />
             <p className="text-sm text-zinc-400 font-medium">Fetching real-time synced lyrics...</p>
           </div>
-        ) : parsedLyrics && parsedLyrics.length > 0 ? (
+        ) : isSynced && lrcLines.length > 0 ? (
           <div className="py-32 space-y-4 sm:space-y-6">
-            {parsedLyrics.map((line, idx) => {
+            {lrcLines.map((line, idx) => {
               const isActive = idx === activeIndex;
               const isPast = idx < activeIndex;
 
@@ -263,6 +262,14 @@ export function LyricsModal({
                 </div>
               );
             })}
+          </div>
+        ) : plainLines && plainLines.length > 0 ? (
+          <div className="py-24 space-y-4 sm:space-y-5 text-zinc-300">
+            {plainLines.map((text, idx) => (
+              <div key={idx} className="px-4 py-1.5 transition-opacity hover:text-white">
+                <p className={fontClass}>{text}</p>
+              </div>
+            ))}
           </div>
         ) : (
           <div className="flex min-h-[400px] flex-col items-center justify-center gap-3 text-center px-4">

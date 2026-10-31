@@ -1,4 +1,4 @@
-import { prisma, sanitizeText } from "./db.service";
+import { prisma, sanitizeText, isDbAvailable, reportDbError } from "./db.service";
 
 export interface NotificationData {
   id: string;
@@ -24,6 +24,7 @@ export interface CreateNotificationInput {
 }
 
 const MAX_NOTIFICATIONS = 100;
+const memoryNotifications = new Map<string, NotificationData[]>();
 
 function toNotifData(row: any): NotificationData {
   return {
@@ -42,6 +43,9 @@ function toNotifData(row: any): NotificationData {
 
 export const notificationService = {
   async getNotifications(userId: string, limit = 50): Promise<NotificationData[]> {
+    if (!isDbAvailable()) {
+      return (memoryNotifications.get(userId) || []).slice(0, limit);
+    }
     try {
       const rows = await prisma.notification.findMany({
         where: { userId },
@@ -50,19 +54,25 @@ export const notificationService = {
       });
       return rows.map(toNotifData);
     } catch (err) {
-      console.error("[notificationService.getNotifications] Error:", err);
-      return [];
+      reportDbError(err);
+      return (memoryNotifications.get(userId) || []).slice(0, limit);
     }
   },
 
   async getUnreadCount(userId: string): Promise<{ count: number }> {
+    if (!isDbAvailable()) {
+      const userList = memoryNotifications.get(userId) || [];
+      return { count: userList.filter((n) => !n.isRead).length };
+    }
     try {
       const count = await prisma.notification.count({
         where: { userId, isRead: false },
       });
       return { count };
-    } catch {
-      return { count: 0 };
+    } catch (err) {
+      reportDbError(err);
+      const userList = memoryNotifications.get(userId) || [];
+      return { count: userList.filter((n) => !n.isRead).length };
     }
   },
 
@@ -70,6 +80,26 @@ export const notificationService = {
     userId: string,
     input: CreateNotificationInput,
   ): Promise<NotificationData | null> {
+    const memoryItem: NotificationData = {
+      id: `notif_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      type: input.type ?? "info",
+      title: sanitizeText(input.title, 120),
+      message: sanitizeText(input.message, 300),
+      icon: input.icon,
+      artworkUrl: input.artworkUrl,
+      actionUrl: input.actionUrl,
+      isRead: false,
+      isSystem: input.isSystem ?? false,
+      createdAt: new Date().toISOString(),
+    };
+
+    const currentList = memoryNotifications.get(userId) || [];
+    memoryNotifications.set(userId, [memoryItem, ...currentList].slice(0, MAX_NOTIFICATIONS));
+
+    if (!isDbAvailable()) {
+      return memoryItem;
+    }
+
     try {
       const notif = await prisma.notification.create({
         data: {
@@ -102,59 +132,92 @@ export const notificationService = {
 
       return toNotifData(notif);
     } catch (err) {
-      console.error("[notificationService.createNotification] Error:", err);
-      return null;
+      reportDbError(err);
+      return memoryItem;
     }
   },
 
   async markAsRead(userId: string, notifId: string): Promise<NotificationData | null> {
+    const userList = memoryNotifications.get(userId) || [];
+    const target = userList.find((n) => n.id === notifId);
+    if (target) target.isRead = true;
+
+    if (!isDbAvailable()) return target ?? null;
+
     try {
       const notif = await prisma.notification.findFirst({
         where: { id: notifId, userId },
       });
-      if (!notif) return null;
+      if (!notif) return target ?? null;
 
       const updated = await prisma.notification.update({
         where: { id: notifId },
         data: { isRead: true },
       });
       return toNotifData(updated);
-    } catch {
-      return null;
+    } catch (err) {
+      reportDbError(err);
+      return target ?? null;
     }
   },
 
   async markAllRead(userId: string): Promise<{ updated: number }> {
+    const userList = memoryNotifications.get(userId) || [];
+    let updatedCount = 0;
+    userList.forEach((n) => {
+      if (!n.isRead) {
+        n.isRead = true;
+        updatedCount++;
+      }
+    });
+
+    if (!isDbAvailable()) return { updated: updatedCount };
+
     try {
       const result = await prisma.notification.updateMany({
         where: { userId, isRead: false },
         data: { isRead: true },
       });
       return { updated: result.count };
-    } catch {
-      return { updated: 0 };
+    } catch (err) {
+      reportDbError(err);
+      return { updated: updatedCount };
     }
   },
 
   async deleteNotification(userId: string, notifId: string): Promise<boolean> {
+    const userList = memoryNotifications.get(userId) || [];
+    const filtered = userList.filter((n) => n.id !== notifId);
+    memoryNotifications.set(userId, filtered);
+
+    if (!isDbAvailable()) return true;
+
     try {
       const notif = await prisma.notification.findFirst({
         where: { id: notifId, userId },
       });
-      if (!notif) return false;
+      if (!notif) return true;
       await prisma.notification.delete({ where: { id: notifId } });
       return true;
-    } catch {
-      return false;
+    } catch (err) {
+      reportDbError(err);
+      return true;
     }
   },
 
   async clearAll(userId: string): Promise<{ deleted: number }> {
+    const userList = memoryNotifications.get(userId) || [];
+    const count = userList.length;
+    memoryNotifications.delete(userId);
+
+    if (!isDbAvailable()) return { deleted: count };
+
     try {
       const result = await prisma.notification.deleteMany({ where: { userId } });
       return { deleted: result.count };
-    } catch {
-      return { deleted: 0 };
+    } catch (err) {
+      reportDbError(err);
+      return { deleted: count };
     }
   },
 

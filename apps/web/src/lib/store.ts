@@ -89,18 +89,47 @@ const KEYS = {
 };
 
 /**
+ * Cookie storage helpers for persistent cross-reload profile & session caching
+ */
+function setCookie(name: string, value: string, days = 30) {
+  if (typeof document === "undefined") return;
+  try {
+    const expires = new Date(Date.now() + days * 864e5).toUTCString();
+    document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+  } catch {}
+}
+
+function getCookie(name: string): string | null {
+  if (typeof document === "undefined") return null;
+  try {
+    const match = document.cookie.match(new RegExp("(?:^|;\\s*)" + name + "=([^;]*)"));
+    return match ? decodeURIComponent(match[1]) : null;
+  } catch {
+    return null;
+  }
+}
+
+function deleteCookie(name: string) {
+  if (typeof document === "undefined") return;
+  try {
+    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax`;
+  } catch {}
+}
+
+/**
  * Ensures a secure, persistent anonymous device session token in the client.
  */
 function getSessionToken(): string {
   if (typeof window === "undefined") return "";
   try {
-    let token = localStorage.getItem(KEYS.SESSION_TOKEN);
+    let token = localStorage.getItem(KEYS.SESSION_TOKEN) || getCookie(KEYS.SESSION_TOKEN);
     if (!token || !/^[a-zA-Z0-9_-]{10,64}$/.test(token)) {
       token =
         typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
           ? crypto.randomUUID()
           : `ms_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
       localStorage.setItem(KEYS.SESSION_TOKEN, token);
+      setCookie(KEYS.SESSION_TOKEN, token);
     }
     return token;
   } catch {
@@ -116,7 +145,7 @@ function getAuthHeaders(): HeadersInit {
 
   if (typeof window !== "undefined") {
     try {
-      const authToken = localStorage.getItem(KEYS.AUTH_TOKEN);
+      const authToken = localStorage.getItem(KEYS.AUTH_TOKEN) || getCookie(KEYS.AUTH_TOKEN);
       if (authToken) {
         headers["Authorization"] = `Bearer ${authToken}`;
       }
@@ -124,6 +153,16 @@ function getAuthHeaders(): HeadersInit {
   }
 
   return headers;
+}
+
+async function fetchFast(url: string, options?: RequestInit, timeoutMs = 2500): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(id);
+  }
 }
 
 function isCleanTrack(t: Track): boolean {
@@ -142,34 +181,98 @@ export const store = {
   getStoredUser(): SafeUser | null {
     if (typeof window === "undefined") return null;
     try {
+      // 1. Read from localStorage (fastest)
       const data = localStorage.getItem(KEYS.AUTH_USER);
-      return data ? JSON.parse(data) : null;
+      if (data) return JSON.parse(data);
+
+      // 2. Fallback to cookie
+      const cookieData = getCookie(KEYS.AUTH_USER);
+      if (cookieData) {
+        const parsed = JSON.parse(cookieData);
+        // Resync to localStorage
+        localStorage.setItem(KEYS.AUTH_USER, cookieData);
+        return parsed;
+      }
+      return null;
     } catch {
       return null;
     }
   },
 
-  async getMe(): Promise<SafeUser> {
+  getLocalFavorites(): Track[] {
+    if (typeof window === "undefined") return [];
     try {
-      const res = await fetch(`${API_BASE}/auth/me`, {
-        headers: getAuthHeaders(),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.user) {
-          localStorage.setItem(KEYS.AUTH_USER, JSON.stringify(data.user));
-          if (data.sessionId) {
-            localStorage.setItem(KEYS.SESSION_TOKEN, data.sessionId);
-          }
-          return data.user;
-        }
-      }
-    } catch {}
+      const cached = localStorage.getItem(KEYS.FAVORITES);
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  },
 
+  getLocalPlaylists(): CustomPlaylist[] {
+    if (typeof window === "undefined") return [];
+    try {
+      const cached = localStorage.getItem(KEYS.PLAYLISTS);
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  },
+
+  getLocalRecentlyPlayed(): Track[] {
+    if (typeof window === "undefined") return [];
+    try {
+      const cached = localStorage.getItem(KEYS.RECENTLY_PLAYED);
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  },
+
+  async getMe(onRevalidated?: (user: SafeUser) => void): Promise<SafeUser> {
+    // 1. Return cached user INSTANTLY (0ms) so reload never flashes or waits
     const cached = store.getStoredUser();
-    if (cached) return cached;
 
-    return {
+    // 2. Background revalidation from backend (Stale-While-Revalidate)
+    const syncBackend = async () => {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 4500);
+        const res = await fetch(`${API_BASE}/auth/me`, {
+          headers: getAuthHeaders(),
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.user) {
+            const serialized = JSON.stringify(data.user);
+            localStorage.setItem(KEYS.AUTH_USER, serialized);
+            setCookie(KEYS.AUTH_USER, serialized);
+            if (data.sessionId) {
+              localStorage.setItem(KEYS.SESSION_TOKEN, data.sessionId);
+              setCookie(KEYS.SESSION_TOKEN, data.sessionId);
+            }
+            onRevalidated?.(data.user);
+            return data.user as SafeUser;
+          }
+        }
+      } catch {}
+      return null;
+    };
+
+    if (cached) {
+      // Run background sync quietly without blocking the UI
+      syncBackend();
+      return cached;
+    }
+
+    // If first-time visitor, wait for initial sync
+    const freshUser = await syncBackend();
+    if (freshUser) return freshUser;
+
+    const guest: SafeUser = {
       id: getSessionToken(),
       email: null,
       displayName: "Guest Listener",
@@ -177,6 +280,13 @@ export const store = {
       isAnonymous: true,
       createdAt: new Date().toISOString(),
     };
+    try {
+      const serialized = JSON.stringify(guest);
+      localStorage.setItem(KEYS.AUTH_USER, serialized);
+      setCookie(KEYS.AUTH_USER, serialized);
+    } catch {}
+
+    return guest;
   },
 
   async register(
@@ -203,10 +313,14 @@ export const store = {
     const data = await res.json();
     if (data.token) {
       localStorage.setItem(KEYS.AUTH_TOKEN, data.token);
+      setCookie(KEYS.AUTH_TOKEN, data.token);
     }
     if (data.user) {
-      localStorage.setItem(KEYS.AUTH_USER, JSON.stringify(data.user));
+      const serialized = JSON.stringify(data.user);
+      localStorage.setItem(KEYS.AUTH_USER, serialized);
+      setCookie(KEYS.AUTH_USER, serialized);
       localStorage.setItem(KEYS.SESSION_TOKEN, data.user.id);
+      setCookie(KEYS.SESSION_TOKEN, data.user.id);
     }
 
     return data;
@@ -235,10 +349,14 @@ export const store = {
     const data = await res.json();
     if (data.token) {
       localStorage.setItem(KEYS.AUTH_TOKEN, data.token);
+      setCookie(KEYS.AUTH_TOKEN, data.token);
     }
     if (data.user) {
-      localStorage.setItem(KEYS.AUTH_USER, JSON.stringify(data.user));
+      const serialized = JSON.stringify(data.user);
+      localStorage.setItem(KEYS.AUTH_USER, serialized);
+      setCookie(KEYS.AUTH_USER, serialized);
       localStorage.setItem(KEYS.SESSION_TOKEN, data.user.id);
+      setCookie(KEYS.SESSION_TOKEN, data.user.id);
     }
 
     return data;
@@ -262,10 +380,14 @@ export const store = {
     const data = await res.json();
     if (data.token) {
       localStorage.setItem(KEYS.AUTH_TOKEN, data.token);
+      setCookie(KEYS.AUTH_TOKEN, data.token);
     }
     if (data.user) {
-      localStorage.setItem(KEYS.AUTH_USER, JSON.stringify(data.user));
+      const serialized = JSON.stringify(data.user);
+      localStorage.setItem(KEYS.AUTH_USER, serialized);
+      setCookie(KEYS.AUTH_USER, serialized);
       localStorage.setItem(KEYS.SESSION_TOKEN, data.user.id);
+      setCookie(KEYS.SESSION_TOKEN, data.user.id);
     }
 
     return data;
@@ -292,12 +414,16 @@ export const store = {
     try {
       localStorage.removeItem(KEYS.AUTH_TOKEN);
       localStorage.removeItem(KEYS.AUTH_USER);
+      deleteCookie(KEYS.AUTH_TOKEN);
+      deleteCookie(KEYS.AUTH_USER);
+
       // Generate fresh anonymous session token so subsequent actions are isolated
       const freshToken =
         typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
           ? crypto.randomUUID()
           : `ms_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
       localStorage.setItem(KEYS.SESSION_TOKEN, freshToken);
+      setCookie(KEYS.SESSION_TOKEN, freshToken);
     } catch {}
   },
 
@@ -315,7 +441,9 @@ export const store = {
       if (res.ok) {
         const data = await res.json();
         if (data.user) {
-          localStorage.setItem(KEYS.AUTH_USER, JSON.stringify(data.user));
+          const serialized = JSON.stringify(data.user);
+          localStorage.setItem(KEYS.AUTH_USER, serialized);
+          setCookie(KEYS.AUTH_USER, serialized);
           return data.user;
         }
       }
@@ -374,7 +502,7 @@ export const store = {
 
     // Background sync from secure Supabase backend
     try {
-      const res = await fetch(`${API_BASE}/user/favorites`, {
+      const res = await fetchFast(`${API_BASE}/user/favorites`, {
         headers: getAuthHeaders(),
       });
       if (res.ok) {
@@ -445,7 +573,7 @@ export const store = {
     } catch {}
 
     try {
-      const res = await fetch(`${API_BASE}/user/playlists`, {
+      const res = await fetchFast(`${API_BASE}/user/playlists`, {
         headers: getAuthHeaders(),
       });
       if (res.ok) {
@@ -679,7 +807,7 @@ export const store = {
     } catch {}
 
     try {
-      const res = await fetch(`${API_BASE}/user/history`, {
+      const res = await fetchFast(`${API_BASE}/user/history`, {
         headers: getAuthHeaders(),
       });
       if (res.ok) {

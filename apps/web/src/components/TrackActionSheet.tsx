@@ -51,7 +51,6 @@ export function TrackActionSheet({
     }
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        haptics.light();
         onClose();
       }
     };
@@ -65,7 +64,6 @@ export function TrackActionSheet({
   const durationSec = track.durationMs ? track.durationMs / 1000 : 0;
 
   const handleShare = async () => {
-    haptics.medium();
     const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/?track=${encodeURIComponent(track.id)}` : "";
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
@@ -74,7 +72,6 @@ export function TrackActionSheet({
           text: `Listen to ${track.title} by ${artistsText} on Musify`,
           url: shareUrl,
         });
-        haptics.success();
         onClose();
         return;
       } catch {
@@ -86,7 +83,7 @@ export function TrackActionSheet({
       try {
         await navigator.clipboard.writeText(shareUrl || track.title);
         setCopied(true);
-        haptics.success();
+        haptics.light();
         setTimeout(() => setCopied(false), 2000);
       } catch {
         // Clipboard write failed
@@ -107,7 +104,6 @@ export function TrackActionSheet({
       <div
         className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
         onClick={() => {
-          haptics.light();
           onClose();
         }}
       />
@@ -163,7 +159,6 @@ export function TrackActionSheet({
           {/* Play Now */}
           <button
             onClick={() => {
-              haptics.medium();
               onPlay(track);
               onClose();
             }}
@@ -181,7 +176,6 @@ export function TrackActionSheet({
           {/* Play Next */}
           <button
             onClick={() => {
-              haptics.success();
               onPlayNext(track);
               onClose();
             }}
@@ -199,7 +193,6 @@ export function TrackActionSheet({
           {/* Add to Queue */}
           <button
             onClick={() => {
-              haptics.success();
               onAddToQueue(track);
               onClose();
             }}
@@ -217,7 +210,7 @@ export function TrackActionSheet({
           {/* Like / Unlike */}
           <button
             onClick={() => {
-              haptics.medium();
+              haptics.light();
               onToggleLike(track);
             }}
             className="w-full flex items-center gap-3.5 px-3.5 py-3 rounded-2xl hover:bg-white/10 active:bg-white/15 transition-all text-left group"
@@ -239,7 +232,6 @@ export function TrackActionSheet({
           {onAskAI && (
             <button
               onClick={() => {
-                haptics.medium();
                 onAskAI(track);
                 onClose();
               }}
@@ -259,7 +251,6 @@ export function TrackActionSheet({
           {onAddToPlaylist && (
             <button
               onClick={() => {
-                haptics.light();
                 onAddToPlaylist(track);
                 onClose();
               }}

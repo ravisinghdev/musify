@@ -86,16 +86,16 @@ export function NotificationPanel({
         ref={panelRef}
         role="dialog"
         aria-label="Notification panel"
-        className="fixed top-[84px] left-2 right-2 z-50 rounded-3xl border border-white/10 p-4 shadow-2xl backdrop-blur-xl animate-fade-in sm:absolute sm:top-full sm:mt-2 sm:right-0 sm:left-auto sm:w-[380px] max-w-[calc(100vw-16px)]"
+        className="fixed top-[84px] left-2 right-2 z-50 rounded-3xl border border-white/[0.10] bg-[#12141C]/95 p-4 shadow-2xl backdrop-blur-2xl animate-fade-in sm:absolute sm:top-full sm:mt-2 sm:right-0 sm:left-auto sm:w-[380px] max-w-[calc(100vw-16px)]"
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-white">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#F5F5F7]">
               Notifications
             </span>
             {unreadCount > 0 && (
-              <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 px-1.5 text-[10px] font-bold text-white shadow-[0_0_10px_rgba(99,102,241,0.6)]">
+              <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#A5A9FF] px-1.5 text-[10px] font-bold text-[#090A0F] shadow-[0_0_10px_rgba(165,169,255,0.4)]">
                 {unreadCount > 99 ? "99+" : unreadCount}
               </span>
             )}
@@ -105,7 +105,7 @@ export function NotificationPanel({
             {unreadCount > 0 && (
               <button
                 onClick={onMarkAllRead}
-                className="text-[11px] font-medium text-indigo-400 hover:text-indigo-300 transition hover:underline"
+                className="text-[11px] font-medium text-[#A5A9FF] hover:text-[#888EFF] transition hover:underline"
               >
                 Mark read
               </button>
@@ -113,14 +113,14 @@ export function NotificationPanel({
             {notifications.length > 0 && (
               <button
                 onClick={onClearAll}
-                className="text-[11px] font-medium text-zinc-400 hover:text-rose-400 transition"
+                className="text-[11px] font-medium text-[#A1A4B2] hover:text-[#F17D85] transition"
               >
                 Clear all
               </button>
             )}
             <button
               onClick={onClose}
-              className="sm:hidden flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-zinc-400 hover:text-white transition"
+              className="sm:hidden flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-[#A1A4B2] hover:text-[#F5F5F7] transition"
               aria-label="Close notifications"
             >
               <Icon name="close" size={12} />
@@ -135,8 +135,8 @@ export function NotificationPanel({
               onClick={() => setActiveTab("all")}
               className={`rounded-xl px-3 py-1 text-xs font-medium transition ${
                 activeTab === "all"
-                  ? "bg-white/15 text-white shadow-sm"
-                  : "bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-white"
+                  ? "bg-[#292B4B] text-[#A5A9FF] border border-[#A5A9FF]/20 shadow-sm"
+                  : "bg-white/[0.03] text-[#A1A4B2] hover:bg-white/[0.06] hover:text-[#F5F5F7]"
               }`}
             >
               All ({notifications.length})
@@ -145,8 +145,8 @@ export function NotificationPanel({
               onClick={() => setActiveTab("unread")}
               className={`rounded-xl px-3 py-1 text-xs font-medium transition ${
                 activeTab === "unread"
-                  ? "bg-white/15 text-white shadow-sm"
-                  : "bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-white"
+                  ? "bg-[#292B4B] text-[#A5A9FF] border border-[#A5A9FF]/20 shadow-sm"
+                  : "bg-white/[0.03] text-[#A1A4B2] hover:bg-white/[0.06] hover:text-[#F5F5F7]"
               }`}
             >
               Unread ({unreadCount})
@@ -158,20 +158,20 @@ export function NotificationPanel({
         <div className="mt-2 space-y-1.5 max-h-[min(420px,calc(100vh-220px))] overflow-y-auto custom-scrollbar pr-0.5">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-10 gap-2">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-indigo-400 border-t-transparent" />
-              <p className="text-xs text-zinc-500">Syncing notifications…</p>
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#A5A9FF] border-t-transparent" />
+              <p className="text-xs text-[#686C7B]">Syncing notifications…</p>
             </div>
           ) : displayedList.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-center">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[0.04] text-2xl shadow-inner mb-2">
                 🔔
               </div>
-              <p className="text-xs font-semibold text-zinc-300">
+              <p className="text-xs font-semibold text-[#A1A4B2]">
                 {activeTab === "unread"
                   ? "No unread notifications"
                   : "No notifications yet"}
               </p>
-              <p className="text-[11px] text-zinc-500 mt-1 max-w-[220px]">
+              <p className="text-[11px] text-[#686C7B] mt-1 max-w-[220px]">
                 {activeTab === "unread"
                   ? "You have caught up with all your updates!"
                   : "Activity like saved tracks, playlists, and releases will appear here."}
@@ -191,8 +191,8 @@ export function NotificationPanel({
                   }}
                   className={`group relative flex items-start gap-3 rounded-2xl p-2.5 transition-all cursor-pointer ${
                     notif.isRead
-                      ? "bg-white/[0.02] hover:bg-white/[0.06] text-zinc-300"
-                      : "bg-indigo-500/[0.08] hover:bg-indigo-500/[0.14] border border-indigo-500/20 text-white"
+                      ? "bg-white/[0.02] hover:bg-white/[0.06] text-[#A1A4B2]"
+                      : "bg-[#292B4B]/35 hover:bg-[#292B4B]/55 border border-[#A5A9FF]/20 text-[#F5F5F7]"
                   }`}
                 >
                   {/* Artwork / Icon */}
@@ -213,7 +213,7 @@ export function NotificationPanel({
                       </div>
                     )}
                     {!notif.isRead && (
-                      <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-indigo-400 ring-2 ring-[#0d1017] shadow-[0_0_6px_rgba(129,140,248,0.9)]" />
+                      <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-[#A5A9FF] ring-2 ring-[#090A0F] shadow-[0_0_6px_rgba(165,169,255,0.9)]" />
                     )}
                   </div>
 
@@ -221,20 +221,20 @@ export function NotificationPanel({
                   <div className="min-w-0 flex-1">
                     <p
                       className={`text-xs font-semibold leading-tight ${
-                        notif.isRead ? "text-zinc-200" : "text-white"
+                        notif.isRead ? "text-[#F5F5F7]/90" : "text-[#F5F5F7]"
                       }`}
                     >
                       {notif.title}
                     </p>
-                    <p className="text-[11px] text-zinc-400 mt-1 leading-snug line-clamp-2">
+                    <p className="text-[11px] text-[#A1A4B2] mt-1 leading-snug line-clamp-2">
                       {notif.message}
                     </p>
                     <div className="mt-1.5 flex items-center gap-2">
-                      <span className="text-[10px] font-mono text-zinc-500">
+                      <span className="text-[10px] font-mono text-[#686C7B]">
                         {formatTimeAgo(notif.createdAt)}
                       </span>
                       {!notif.isRead && (
-                        <span className="text-[10px] text-indigo-400 font-medium">
+                        <span className="text-[10px] text-[#A5A9FF] font-medium">
                           • New
                         </span>
                       )}
@@ -249,7 +249,7 @@ export function NotificationPanel({
                     }}
                     title="Delete notification"
                     aria-label="Delete notification"
-                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg shrink-0"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-[#686C7B] hover:text-[#F17D85] hover:bg-[#F17D85]/10 rounded-lg shrink-0"
                   >
                     <Icon name="close" size={13} />
                   </button>
