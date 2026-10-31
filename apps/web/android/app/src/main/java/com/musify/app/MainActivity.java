@@ -33,7 +33,7 @@ public class MainActivity extends BridgeActivity {
 
     public class MusifyNativeBridge {
         @JavascriptInterface
-        public void updatePlayback(final String title, final String artist, final String artworkUrl, final boolean isPlaying) {
+        public void updatePlayback(final String title, final String artist, final String artworkUrl, final boolean isPlaying, final double positionSec, final double durationSec) {
             runOnUiThread(() -> {
                 try {
                     Intent serviceIntent = new Intent(MainActivity.this, MusifyPlaybackService.class);
@@ -42,6 +42,31 @@ public class MainActivity extends BridgeActivity {
                     serviceIntent.putExtra(MusifyPlaybackService.EXTRA_ARTIST, artist);
                     serviceIntent.putExtra(MusifyPlaybackService.EXTRA_ARTWORK_URL, artworkUrl);
                     serviceIntent.putExtra(MusifyPlaybackService.EXTRA_IS_PLAYING, isPlaying);
+                    serviceIntent.putExtra(MusifyPlaybackService.EXTRA_POSITION_MS, (long) Math.max(0, positionSec * 1000.0));
+                    serviceIntent.putExtra(MusifyPlaybackService.EXTRA_DURATION_MS, (long) Math.max(0, durationSec * 1000.0));
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        startForegroundService(serviceIntent);
+                    } else {
+                        startService(serviceIntent);
+                    }
+                } catch (Exception ignored) {}
+            });
+        }
+
+        @JavascriptInterface
+        public void updatePlayback(final String title, final String artist, final String artworkUrl, final boolean isPlaying) {
+            updatePlayback(title, artist, artworkUrl, isPlaying, 0.0, 0.0);
+        }
+
+        @JavascriptInterface
+        public void updateTimeline(final double positionSec, final double durationSec) {
+            runOnUiThread(() -> {
+                try {
+                    Intent serviceIntent = new Intent(MainActivity.this, MusifyPlaybackService.class);
+                    serviceIntent.setAction(MusifyPlaybackService.ACTION_UPDATE_TIMELINE);
+                    serviceIntent.putExtra(MusifyPlaybackService.EXTRA_POSITION_MS, (long) Math.max(0, positionSec * 1000.0));
+                    serviceIntent.putExtra(MusifyPlaybackService.EXTRA_DURATION_MS, (long) Math.max(0, durationSec * 1000.0));
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         startForegroundService(serviceIntent);
@@ -81,6 +106,16 @@ public class MainActivity extends BridgeActivity {
 
                 // Inject MusifyNativeBridge
                 webView.addJavascriptInterface(new MusifyNativeBridge(), "MusifyNativeBridge");
+
+                // Inject Page Visibility API override so backgrounding does not pause HTML5 / YouTube playback
+                String jsSpoof = "(function() {" +
+                    "try {" +
+                    "  Object.defineProperty(document, 'hidden', { get: function() { return false; }, configurable: true });" +
+                    "  Object.defineProperty(document, 'visibilityState', { get: function() { return 'visible'; }, configurable: true });" +
+                    "  window.addEventListener('visibilitychange', function(e) { e.stopImmediatePropagation(); }, true);" +
+                    "} catch (e) {}" +
+                    "})();";
+                webView.evaluateJavascript(jsSpoof, null);
             }
         } catch (Exception ignored) {}
     }
@@ -90,7 +125,7 @@ public class MainActivity extends BridgeActivity {
         super.onPause();
         try {
             if (getBridge() != null && getBridge().getWebView() != null) {
-                // Keep WebView resumed & timers running so audio playback continues in background
+                // Keep WebView active & timers running so audio continues when minimized
                 getBridge().getWebView().onResume();
                 getBridge().getWebView().resumeTimers();
             }
@@ -127,3 +162,4 @@ public class MainActivity extends BridgeActivity {
         super.onDestroy();
     }
 }
+

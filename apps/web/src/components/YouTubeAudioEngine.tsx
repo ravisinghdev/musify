@@ -99,6 +99,18 @@ export function YouTubeAudioEngine({
     } catch {}
   }, [playbackSpeed, isPlayerReady]);
 
+  // Page visibility spoof to prevent browser/WebView from pausing audio when app is minimized
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      Object.defineProperty(document, "hidden", { get: () => false, configurable: true });
+      Object.defineProperty(document, "visibilityState", { get: () => "visible", configurable: true });
+      const cancelVisibility = (e: Event) => e.stopImmediatePropagation();
+      window.addEventListener("visibilitychange", cancelVisibility, true);
+      return () => window.removeEventListener("visibilitychange", cancelVisibility, true);
+    } catch {}
+  }, []);
+
   // Silent HTML5 audio track to maintain OS background audio focus & prevent mobile browser suspension
   const silentAudioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -142,11 +154,15 @@ export function YouTubeAudioEngine({
             (currentTrack.sourceTrackId
               ? `https://i.ytimg.com/vi/${currentTrack.sourceTrackId}/hqdefault.jpg`
               : "");
+          const curr = playerRef.current?.getCurrentTime?.() ?? 0;
+          const dur = playerRef.current?.getDuration?.() ?? 0;
           (window as any).MusifyNativeBridge.updatePlayback(
             currentTrack.title,
             artistsText,
             art,
             isPlaying,
+            curr,
+            dur,
           );
         } else {
           (window as any).MusifyNativeBridge.stopPlayback();
@@ -228,6 +244,25 @@ export function YouTubeAudioEngine({
     if (typeof window === "undefined") return;
     const handleNativeControl = (e: any) => {
       const action = e.detail?.action;
+      if (typeof action === "string" && action.startsWith("seek:")) {
+        const seconds = parseFloat(action.replace("seek:", ""));
+        if (!isNaN(seconds) && isFinite(seconds) && seconds >= 0) {
+          try {
+            playerRef.current?.seekTo?.(seconds, true);
+          } catch {}
+        }
+        return;
+      }
+      if (e.detail?.seekSeconds !== undefined) {
+        const seconds = Number(e.detail.seekSeconds);
+        if (!isNaN(seconds) && isFinite(seconds) && seconds >= 0) {
+          try {
+            playerRef.current?.seekTo?.(seconds, true);
+          } catch {}
+        }
+        return;
+      }
+
       if (action === "play") {
         onIsPlayingChangeRef.current(true);
       } else if (action === "pause") {
@@ -486,6 +521,7 @@ export function YouTubeAudioEngine({
   }, [seekToTime, onSeekHandled, isPlayerReady]);
 
   // Time update polling (high-frequency 200ms for silky smooth lyrics sync)
+  const lastTimelineSyncRef = useRef<number>(0);
   useEffect(() => {
     const interval = setInterval(() => {
       if (!isPlayerReady || !playerRef.current) return;
@@ -502,6 +538,17 @@ export function YouTubeAudioEngine({
           const dur = playerRef.current.getDuration?.() ?? 0;
           const loadedFraction = playerRef.current.getVideoLoadedFraction?.() ?? 0;
           onTimeUpdate(curr, dur, loadedFraction);
+
+          // Sync timeline with Android native media notification every 1500ms
+          const now = Date.now();
+          if (now - lastTimelineSyncRef.current > 1500) {
+            lastTimelineSyncRef.current = now;
+            if (typeof window !== "undefined" && (window as any).MusifyNativeBridge?.updateTimeline) {
+              try {
+                (window as any).MusifyNativeBridge.updateTimeline(curr, dur);
+              } catch {}
+            }
+          }
 
           // Audio Crossfade Volume Transition Curve
           if (!isMuted && crossfadeSeconds > 0 && dur > crossfadeSeconds * 2) {
@@ -525,20 +572,20 @@ export function YouTubeAudioEngine({
     }, 200);
 
     return () => clearInterval(interval);
-  }, [onTimeUpdate, isPlayerReady]);
+  }, [onTimeUpdate, isPlayerReady, isMuted, volume, crossfadeSeconds]);
 
   return (
     <div
       aria-hidden="true"
       style={{
         position: "fixed",
-        top: 0,
-        left: 0,
-        width: "1px",
-        height: "1px",
-        opacity: 0.01,
+        bottom: 0,
+        right: 0,
+        width: "200px",
+        height: "200px",
+        opacity: 0.001,
         pointerEvents: "none",
-        zIndex: -1,
+        zIndex: -9999,
       }}
     >
       <div id="musify-hidden-yt-player" />

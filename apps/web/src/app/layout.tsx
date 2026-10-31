@@ -59,6 +59,18 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://musify-4fzw.onrender.com" />
         {/* Pre-warm YouTube Audio Engine API */}
         <script src="https://www.youtube.com/iframe_api" async id="yt-iframe-api"></script>
+        {/* Mobile WebView Background Playback & Visibility Immunity */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                Object.defineProperty(document, 'hidden', { get: function() { return false; }, configurable: true });
+                Object.defineProperty(document, 'visibilityState', { get: function() { return 'visible'; }, configurable: true });
+                window.addEventListener('visibilitychange', function(e) { e.stopImmediatePropagation(); }, true);
+              } catch(e) {}
+            `,
+          }}
+        />
       </head>
       <body className="min-h-full flex flex-col bg-[#090A0F] text-[#F5F5F7] selection:bg-[#292B4B] selection:text-[#A5A9FF]">
         <NetworkBanner />
