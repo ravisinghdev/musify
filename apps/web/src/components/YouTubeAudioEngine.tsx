@@ -119,6 +119,17 @@ export function YouTubeAudioEngine({
     } catch {}
   }, []);
 
+  // Periodic user activity simulation to prevent YouTube player from auto-pausing due to perceived inactivity
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const activityTimer = setInterval(() => {
+      try {
+        window.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
+      } catch {}
+    }, 12000);
+    return () => clearInterval(activityTimer);
+  }, []);
+
   // Silent HTML5 audio track to maintain OS background audio focus & prevent mobile browser suspension
   const silentAudioRef = useRef<HTMLAudioElement | null>(null);
 

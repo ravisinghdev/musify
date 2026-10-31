@@ -27,4 +27,21 @@ public class MusifyWebView extends CapacitorWebView {
     protected void onVisibilityChanged(View changedView, int visibility) {
         super.onVisibilityChanged(changedView, View.VISIBLE);
     }
+
+    @Override
+    public int getWindowVisibility() {
+        return View.VISIBLE;
+    }
+
+    @Override
+    public int getVisibility() {
+        return View.VISIBLE;
+    }
+
+    @Override
+    public boolean hasWindowFocus() {
+        return true;
+    }
 }
+
+
