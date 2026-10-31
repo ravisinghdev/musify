@@ -163,7 +163,9 @@ export function YouTubeAudioEngine({
               ? `https://i.ytimg.com/vi/${currentTrack.sourceTrackId}/hqdefault.jpg`
               : "");
           const curr = playerRef.current?.getCurrentTime?.() ?? 0;
-          const dur = playerRef.current?.getDuration?.() ?? 0;
+          const dur =
+            (playerRef.current?.getDuration?.() ?? 0) ||
+            (currentTrack.durationMs ? currentTrack.durationMs / 1000 : 180);
           (window as any).MusifyNativeBridge.updatePlayback(
             currentTrack.title,
             artistsText,

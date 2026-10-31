@@ -67,12 +67,7 @@ public class MainActivity extends BridgeActivity {
                     serviceIntent.setAction(MusifyPlaybackService.ACTION_UPDATE_TIMELINE);
                     serviceIntent.putExtra(MusifyPlaybackService.EXTRA_POSITION_MS, (long) Math.max(0, positionSec * 1000.0));
                     serviceIntent.putExtra(MusifyPlaybackService.EXTRA_DURATION_MS, (long) Math.max(0, durationSec * 1000.0));
-
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        startForegroundService(serviceIntent);
-                    } else {
-                        startService(serviceIntent);
-                    }
+                    startService(serviceIntent);
                 } catch (Exception ignored) {}
             });
         }
@@ -124,16 +119,7 @@ public class MainActivity extends BridgeActivity {
         } catch (Exception ignored) {}
     }
 
-    @Override
-    protected void onUserLeaveHint() {
-        super.onUserLeaveHint();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            try {
-                android.app.PictureInPictureParams params = new android.app.PictureInPictureParams.Builder().build();
-                enterPictureInPictureMode(params);
-            } catch (Exception ignored) {}
-        }
-    }
+
 
     @Override
     public void onPause() {

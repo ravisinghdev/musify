@@ -97,6 +97,10 @@ public class MusifyPlaybackService extends Service {
 
         // 2. Initialize MediaSessionCompat for SystemUI Timeline, Lock Screen & Bluetooth Headset controls
         mediaSession = new MediaSessionCompat(this, "MusifyMediaSession");
+        mediaSession.setFlags(
+            MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
+            MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
+        );
         mediaSession.setCallback(new MediaSessionCompat.Callback() {
             @Override
             public void onPlay() {
@@ -226,16 +230,16 @@ public class MusifyPlaybackService extends Service {
     private void updateMediaSession() {
         if (mediaSession == null) return;
 
+        // Ensure duration is always positive so Android SystemUI seekbar & timeline render unconditionally
+        long safeDuration = currentDurationMs > 0 ? currentDurationMs : 180000L;
+
         long actions = PlaybackStateCompat.ACTION_PLAY |
                        PlaybackStateCompat.ACTION_PAUSE |
                        PlaybackStateCompat.ACTION_PLAY_PAUSE |
                        PlaybackStateCompat.ACTION_SKIP_TO_NEXT |
                        PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS |
+                       PlaybackStateCompat.ACTION_SEEK_TO |
                        PlaybackStateCompat.ACTION_STOP;
-
-        if (currentDurationMs > 0) {
-            actions |= PlaybackStateCompat.ACTION_SEEK_TO;
-        }
 
         PlaybackStateCompat.Builder stateBuilder = new PlaybackStateCompat.Builder()
                 .setActions(actions)
@@ -250,11 +254,8 @@ public class MusifyPlaybackService extends Service {
         MediaMetadataCompat.Builder metaBuilder = new MediaMetadataCompat.Builder()
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, currentTitle)
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, currentArtist)
-                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, "Musify");
-
-        if (currentDurationMs > 0) {
-            metaBuilder.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, currentDurationMs);
-        }
+                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, "Musify")
+                .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, safeDuration);
 
         if (cachedArtworkBitmap != null) {
             metaBuilder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, cachedArtworkBitmap);
